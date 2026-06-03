@@ -10,8 +10,6 @@ import {
 import { getEventBySlug } from "@/lib/repo"
 import type {
   EventStore,
-  EventMenu,
-  EventGoods,
   EventBroadcast,
   EventPost,
   EventCampaign,
@@ -19,6 +17,8 @@ import type {
   EventEpisode,
 } from "@/data/events"
 import SafeImage from "@/components/common/SafeImage"
+import EventSection from "@/components/event/EventSection"
+import EventItemGrid, { type EventGridItem } from "@/components/event/EventItemGrid"
 
 const BASE = "/stpr-10th-anniversary"
 
@@ -42,8 +42,6 @@ export async function generateMetadata({
   }
 }
 
-const SECTION = "rounded-2xl border border-gold-200/70 bg-white/55 p-4 backdrop-blur-sm shadow-sm md:p-6 mb-6"
-const SECTION_H2 = "mb-4 flex items-center gap-2 font-serif font-bold text-[#3a2540]"
 const BLOCK = "rounded-xl border border-gold-100/70 p-4"
 const BTN = "inline-block rounded-xl bg-gold-400 px-4 py-2 text-xs text-white transition-colors hover:bg-gold-500"
 
@@ -165,105 +163,96 @@ export default async function EventDetailPage({
 
       {/* 1. 店舗情報 */}
       {event.storeInfo && event.storeInfo.length > 0 && (
-        <section className={SECTION}>
-          <h2 className={SECTION_H2}>店舗情報</h2>
+        <EventSection title="店舗情報" count={event.storeInfo.length}>
           <div className="space-y-4">
             {event.storeInfo.map((s, i) => (
               <StoreBlock key={i} store={s} />
             ))}
           </div>
-        </section>
+        </EventSection>
       )}
 
-      {/* 2. メニュー・特典 */}
+      {/* 2. メニュー・特典（グリッド + モーダル拡大） */}
       {event.menuInfo && event.menuInfo.length > 0 && (
-        <section className={SECTION}>
-          <h2 className={SECTION_H2}>メニュー・特典</h2>
-          <div className="flex flex-col gap-8">
-            {event.menuInfo.map((m, i) => (
-              <MenuBlock key={i} menu={m} />
-            ))}
-          </div>
-        </section>
+        <EventSection title="メニュー・特典" count={event.menuInfo.length}>
+          <EventItemGrid
+            items={event.menuInfo.map(
+              (m): EventGridItem => ({
+                title: m.menuName,
+                images: toImageList(m.image),
+                description: m.description,
+                info: m.info,
+              }),
+            )}
+          />
+        </EventSection>
       )}
 
-      {/* 3. グッズ販売 */}
+      {/* 3. グッズ販売（グリッド + モーダル拡大） */}
       {event.goodsInfo && event.goodsInfo.length > 0 && (
-        <section className={SECTION}>
-          <h2 className={SECTION_H2}>グッズ販売</h2>
-          <div className="flex flex-col gap-8">
-            {event.goodsInfo.map((g, i) => (
-              <EventGoodsBlock key={i} goods={g} />
-            ))}
-          </div>
-        </section>
+        <EventSection title="グッズ販売" count={event.goodsInfo.length}>
+          <EventItemGrid
+            items={event.goodsInfo.map(
+              (g): EventGridItem => ({
+                title: g.goodsName,
+                images: toImageList(g.image),
+                meta: g.salePeriod ? [g.salePeriod] : undefined,
+                info: g.info,
+                linkUrl: g.purchaseUrl,
+                linkLabel: "購入ページ",
+              }),
+            )}
+          />
+        </EventSection>
       )}
 
       {/* 4. 配信情報 */}
       {event.broadcastInfo && event.broadcastInfo.length > 0 && (
-        <section className={SECTION}>
-          <h2 className={SECTION_H2}>
-            配信情報
-            <span className="text-xs font-normal text-[#9a8aa0]">
-              全{event.broadcastInfo.length}件
-            </span>
-          </h2>
+        <EventSection title="配信情報" count={event.broadcastInfo.length}>
           <div className="space-y-2">
             {event.broadcastInfo.map((b, i) => (
               <BroadcastBlock key={i} broadcast={b} />
             ))}
           </div>
-        </section>
+        </EventSection>
       )}
 
       {/* 5. 投稿スケジュール */}
       {event.postSchedule && event.postSchedule.length > 0 && (
-        <section className={SECTION}>
-          <h2 className={SECTION_H2}>
-            投稿スケジュール
-            <span className="text-xs font-normal text-[#9a8aa0]">
-              全{event.postSchedule.length}件
-            </span>
-          </h2>
+        <EventSection title="投稿スケジュール" count={event.postSchedule.length}>
           <div className="space-y-2">
             {event.postSchedule.map((p, i) => (
               <PostBlock key={i} post={p} />
             ))}
           </div>
-        </section>
+        </EventSection>
       )}
 
       {/* 6. キャンペーン */}
       {event.campaignInfo && event.campaignInfo.length > 0 && (
-        <section className={SECTION}>
-          <h2 className={SECTION_H2}>キャンペーン</h2>
+        <EventSection title="キャンペーン" count={event.campaignInfo.length}>
           <div className="space-y-3">
             {event.campaignInfo.map((c, i) => (
               <CampaignBlock key={i} campaign={c} />
             ))}
           </div>
-        </section>
+        </EventSection>
       )}
 
       {/* 7. メディア出演 */}
       {event.mediaInfo && event.mediaInfo.length > 0 && (
-        <section className={SECTION}>
-          <h2 className={SECTION_H2}>メディア出演</h2>
+        <EventSection title="メディア出演" count={event.mediaInfo.length}>
           <div className="space-y-3">
             {event.mediaInfo.map((m, i) => (
               <MediaBlock key={i} media={m} />
             ))}
           </div>
-        </section>
+        </EventSection>
       )}
 
       {/* 8. エピソード */}
       {event.episodes && event.episodes.length > 0 && (
-        <section className={SECTION}>
-          <h2 className={SECTION_H2}>
-            エピソード
-            <span className="text-xs font-normal text-[#9a8aa0]">全{event.episodes.length}回</span>
-          </h2>
+        <EventSection title="エピソード" count={event.episodes.length}>
           <div className="space-y-3">
             {[...event.episodes]
               .sort((a, b) => (b.episodeNumber ?? 0) - (a.episodeNumber ?? 0))
@@ -271,44 +260,38 @@ export default async function EventDetailPage({
                 <EpisodeBlock key={i} episode={ep} />
               ))}
           </div>
-        </section>
+        </EventSection>
       )}
 
-      {/* 9. 大会・コンテスト */}
-      {event.tournamentInfo && event.tournamentInfo.length > 0 && (
-        <div className="mb-6 space-y-6">
-          {event.tournamentInfo.map((t, i) => (
-            <section key={i} className="rounded-2xl border border-gold-200/70 bg-white/55 p-4 shadow-sm backdrop-blur-sm md:p-6">
-              <h2 className={SECTION_H2}>{t.sectionTitle}</h2>
-              {t.image && (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={t.image} alt={t.sectionTitle ?? ""} className="mb-3 w-full rounded-xl" />
-              )}
-              {t.content && (
-                <p className="whitespace-pre-wrap text-sm text-[#6a5570]">{t.content}</p>
-              )}
-            </section>
-          ))}
-        </div>
-      )}
+      {/* 9. 大会・コンテスト（セクションごとにアコーディオン） */}
+      {event.tournamentInfo &&
+        event.tournamentInfo.length > 0 &&
+        event.tournamentInfo.map((t, i) => (
+          <EventSection key={i} title={t.sectionTitle || "大会・コンテスト"}>
+            {toImageList(t.image).map((src, idx) => (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img key={idx} src={src} alt={t.sectionTitle ?? ""} className="mb-3 w-full rounded-xl" />
+            ))}
+            {t.content && (
+              <p className="whitespace-pre-wrap text-sm text-[#6a5570]">{t.content}</p>
+            )}
+          </EventSection>
+        ))}
 
-      {/* 10. カスタムセクション */}
-      {event.customSection && event.customSection.length > 0 && (
-        <div className="mb-6 space-y-6">
-          {event.customSection.map((c, i) => (
-            <section key={i} className="rounded-2xl border border-gold-200/70 bg-white/55 p-4 shadow-sm backdrop-blur-sm md:p-6">
-              {c.sectionTitle && <h2 className={SECTION_H2}>{c.sectionTitle}</h2>}
-              {toImageList(c.image).map((src, idx) => (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img key={idx} src={src} alt={c.sectionTitle ?? ""} className="mb-3 w-full rounded-xl" />
-              ))}
-              {c.content && (
-                <p className="whitespace-pre-wrap text-sm text-[#6a5570]">{c.content}</p>
-              )}
-            </section>
-          ))}
-        </div>
-      )}
+      {/* 10. カスタムセクション（セクションごとにアコーディオン） */}
+      {event.customSection &&
+        event.customSection.length > 0 &&
+        event.customSection.map((c, i) => (
+          <EventSection key={i} title={c.sectionTitle || "セクション"}>
+            {toImageList(c.image).map((src, idx) => (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img key={idx} src={src} alt={c.sectionTitle ?? ""} className="mb-3 w-full rounded-xl" />
+            ))}
+            {c.content && (
+              <p className="whitespace-pre-wrap text-sm text-[#6a5570]">{c.content}</p>
+            )}
+          </EventSection>
+        ))}
     </div>
   )
 }
@@ -352,43 +335,6 @@ function StoreBlock({ store }: { store: EventStore }) {
       {store.reservationUrl && (
         <a href={store.reservationUrl} target="_blank" rel="noopener noreferrer" className={`mt-3 ${BTN}`}>
           予約する →
-        </a>
-      )}
-    </div>
-  )
-}
-
-function MenuBlock({ menu }: { menu: EventMenu }) {
-  return (
-    <div>
-      <h3 className="mb-2 text-base font-bold text-[#3a2540]">{menu.menuName}</h3>
-      {toImageList(menu.image).map((src, idx) => (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img key={idx} src={src} alt={menu.menuName ?? ""} className="mb-2 w-full rounded-lg" />
-      ))}
-      {menu.description && (
-        <p className="whitespace-pre-wrap text-sm text-[#6a5570]">{menu.description}</p>
-      )}
-      {menu.info && <p className="mt-2 whitespace-pre-wrap text-xs text-[#9a8aa0]">{menu.info}</p>}
-    </div>
-  )
-}
-
-function EventGoodsBlock({ goods }: { goods: EventGoods }) {
-  return (
-    <div>
-      <h3 className="mb-3 text-base font-bold text-[#3a2540]">{goods.goodsName}</h3>
-      {toImageList(goods.image).map((src, idx) => (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img key={idx} src={src} alt={goods.goodsName ?? ""} className="mb-3 w-full rounded-lg" />
-      ))}
-      <div className="space-y-1 text-sm text-[#6a5570]">
-        {goods.salePeriod && <p>{goods.salePeriod}</p>}
-        {goods.info && <p className="mt-2 whitespace-pre-wrap text-xs text-[#9a8aa0]">{goods.info}</p>}
-      </div>
-      {goods.purchaseUrl && (
-        <a href={goods.purchaseUrl} target="_blank" rel="noopener noreferrer" className={`mt-3 ${BTN}`}>
-          購入ページ →
         </a>
       )}
     </div>
