@@ -25,14 +25,11 @@ export default function Section({ id, subtitle, title, tone = "white", children 
   return (
     <section
       id={id}
-      style={{
-        background: tone === "pearl" ? T.pearl : "#ffffff",
-        padding: "64px 20px",
-        scrollMarginTop: "72px", // 固定ナビ分のアンカーオフセット
-      }}
+      className="scroll-mt-[72px] px-4 py-8 sm:px-5 sm:py-10"
+      style={{ background: tone === "pearl" ? T.pearl : "#ffffff" }}
     >
       <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
-        <SectionHeading subtitle={subtitle} title={title} className="mb-8" />
+        <SectionHeading subtitle={subtitle} title={title} className="mb-5 sm:mb-8" />
         {children}
       </div>
     </section>

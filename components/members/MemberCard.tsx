@@ -50,8 +50,8 @@ export default function MemberCard({ member }: { member: Member }) {
       >
         {/* 内側をアクキー風（厚みのある透明層） */}
         <div className="sp-acrylic p-1 sm:p-3">
-          {/* カード表面：アイコン画像（正方形・丸角）。SP は小さく中央寄せ。 */}
-          <div className="relative mx-auto aspect-square w-3/4 overflow-hidden rounded bg-white/40 sm:w-full">
+          {/* カード表面：アイコン画像（正方形・丸角・全幅）。 */}
+          <div className="relative aspect-square w-full overflow-hidden rounded bg-white/40">
             <SafeImage
               src={member.icon}
               alt={`${member.name} アイコン`}
@@ -63,7 +63,7 @@ export default function MemberCard({ member }: { member: Member }) {
           </div>
           <div className="text-center mt-2">
             <p
-              className="whitespace-nowrap font-bold text-[11px] leading-tight sm:text-sm"
+              className="whitespace-nowrap font-bold text-xs leading-tight sm:text-sm"
               style={{ color: "var(--sp-text)" }}
             >
               {member.name}
@@ -83,16 +83,15 @@ export default function MemberCard({ member }: { member: Member }) {
             <div className="sp-member-rule" />
           </div>
         </div>
-        {/* 右上にメンバーイニシャル入りホロバッジ */}
+        {/* 右上にメンバーイニシャル入りホロバッジ（SP は小さく） */}
         <span
           aria-hidden
-          className="sp-holo-badge sp-holo-badge--member"
-          style={{ top: 6, right: 6, width: 26, height: 26 }}
+          className="sp-holo-badge sp-holo-badge--member size-[18px]! sm:size-[26px]!"
+          style={{ top: 6, right: 6 }}
         >
           <span
-            className={italianno.className}
+            className={`${italianno.className} text-[10px] sm:text-base`}
             style={{
-              fontSize: 16,
               color: "rgba(58, 37, 64, 0.75)",
               lineHeight: 1,
             }}

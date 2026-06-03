@@ -51,7 +51,7 @@ export default async function TopPage() {
       <section
         style={{
           textAlign: "center",
-          padding: "32px 20px",
+          padding: "20px 16px",
           background: T.pearl,
           borderTop: "1px solid rgba(212,168,83,0.15)",
         }}
@@ -79,14 +79,14 @@ export default async function TopPage() {
       </section>
 
       {/* 3. カテゴリーグリッド（同一ページ内アンカーへ） */}
-      <section style={{ padding: "48px 20px" }}>
+      <section style={{ padding: "24px 16px" }}>
         <CategoryGrid />
       </section>
 
       {/* 4. MEMBERS */}
       <Section id="members" subtitle="MEMBERS" title="メンバー" tone="white">
         <div
-          className="theme-strawberry mx-auto grid grid-cols-3 gap-3 md:grid-cols-6 md:gap-4"
+          className="theme-strawberry mx-auto grid grid-cols-3 gap-2 md:grid-cols-6 md:gap-4"
           style={{ maxWidth: "960px" }}
         >
           {MEMBERS.map((m) => (
