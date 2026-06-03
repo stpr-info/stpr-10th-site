@@ -73,7 +73,7 @@ const ARCH_FLOWERS = [
  */
 export default function HeroSection() {
   return (
-    <section className="relative flex min-h-[88vh] items-center justify-center overflow-hidden">
+    <section className="relative isolate flex min-h-[88vh] items-center justify-center overflow-hidden">
       {/* Layer1: グラデーション背景 */}
       <div
         className="absolute inset-0 -z-30"
