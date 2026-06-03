@@ -21,16 +21,19 @@ export default function LinkCard({
 }: {
   href?: string
   external?: boolean
-  seed: string
+  /** 傾き角度・アクセント色のシード（slug / id）。無い場合は title を使う。 */
+  seed?: string
   title: string
   thumbnail?: string
   date?: string
   category?: string
   fallbackLabel?: string
 }) {
+  // slug が無いカードは title をシードにして決定的な傾き・色を得る。
+  const tiltSeed = seed || title
   const className =
     "card-tilt group relative block overflow-hidden rounded-2xl border border-pink-200 bg-white p-3 shadow-md hover:shadow-lg"
-  const style = { "--tilt": `${rotationFromSeed(seed)}deg` } as CSSProperties
+  const style = { "--tilt": `${rotationFromSeed(tiltSeed)}deg` } as CSSProperties
 
   const inner = (
     <>
@@ -43,7 +46,7 @@ export default function LinkCard({
           top: "18%",
           bottom: "18%",
           width: 3,
-          background: accentColorFromSeed(seed),
+          background: accentColorFromSeed(tiltSeed),
           borderRadius: 2,
         }}
       />

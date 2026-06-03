@@ -2,6 +2,7 @@ import PageContainer from "@/components/common/PageContainer"
 import LinkCard from "@/components/common/LinkCard"
 import EmptyState from "@/components/common/EmptyState"
 import { getMovies } from "@/lib/repo"
+import { resolveYoutubeThumbnail } from "@/lib/utils"
 
 export const dynamic = "force-dynamic"
 
@@ -25,7 +26,7 @@ export default async function MoviePage() {
               external
               seed={m.id}
               title={m.title}
-              thumbnail={m.thumbnail}
+              thumbnail={m.thumbnail ?? resolveYoutubeThumbnail(undefined, m.url)}
               date={m.publishDate}
               category={m.category}
               fallbackLabel="MOVIE"
