@@ -25,11 +25,13 @@ const CATEGORIES: Category[] = [
 /**
  * トップのカテゴリグリッド。各セクション（同一ページのアンカー）への入り口。
  * 全カード同サイズ。SP/タブレット 2 列、PC 4 列。高さは 120px 固定。
+ * omit に含まれる id（例: データ0件の "music" / "album"）は非表示にする。
  */
-export default function CategoryGrid() {
+export default function CategoryGrid({ omit = [] }: { omit?: string[] }) {
+  const categories = CATEGORIES.filter((c) => !omit.includes(c.id))
   return (
     <div className="mx-auto grid max-w-[900px] grid-cols-2 gap-4 px-5 md:grid-cols-4">
-      {CATEGORIES.map((c) => (
+      {categories.map((c) => (
         <a
           key={c.id}
           href={`#${c.id}`}

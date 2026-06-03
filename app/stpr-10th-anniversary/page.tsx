@@ -56,6 +56,12 @@ export default async function TopPage() {
   const latestEvents = [...events].sort((a, b) => byDateDesc(a.periodStart, b.periodStart)).slice(0, 3)
   const latestGoods = [...goods].sort((a, b) => byDateDesc(a.releaseDate, b.releaseDate)).slice(0, 1)
 
+  // データ0件のカテゴリはグリッドからも外す（MUSIC / ALBUM）。
+  const omitCategories = [
+    ...(songs.length === 0 ? ["music"] : []),
+    ...(albums.length === 0 ? ["album"] : []),
+  ]
+
   return (
     <div>
       {/* 1. HERO */}
@@ -94,7 +100,7 @@ export default async function TopPage() {
 
       {/* 3. カテゴリーグリッド（同一ページ内アンカーへ） */}
       <section style={{ padding: "24px 16px" }}>
-        <CategoryGrid />
+        <CategoryGrid omit={omitCategories} />
       </section>
 
       {/* 4. MEMBERS */}
@@ -157,15 +163,19 @@ export default async function TopPage() {
         )}
       </Section>
 
-      {/* 8. MUSIC */}
-      <Section id="music" subtitle="MUSIC" title="ミュージック" tone="white">
-        <MusicListView songs={songs} showControls={false} />
-      </Section>
+      {/* 8. MUSIC（データがある場合のみ表示） */}
+      {songs.length > 0 && (
+        <Section id="music" subtitle="MUSIC" title="ミュージック" tone="white">
+          <MusicListView songs={songs} showControls={false} />
+        </Section>
+      )}
 
-      {/* 9. ALBUM */}
-      <Section id="album" subtitle="ALBUM" title="アルバム" tone="pearl">
-        <AlbumListView albums={albums} showControls={false} />
-      </Section>
+      {/* 9. ALBUM（データがある場合のみ表示） */}
+      {albums.length > 0 && (
+        <Section id="album" subtitle="ALBUM" title="アルバム" tone="pearl">
+          <AlbumListView albums={albums} showControls={false} />
+        </Section>
+      )}
 
       {/* 10. MAGAZINE */}
       <Section id="magazine" subtitle="MAGAZINE" title="雑誌" tone="white">

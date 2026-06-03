@@ -19,10 +19,10 @@ const NAV_ITEMS: { label: string; segment: string }[] = [
 ]
 
 /**
- * スティッキーナビ。
+ * スティッキーナビ（PC ヘッダー）。
  * - backdrop-blur + 半透明白背景
  * - アクティブ項目はゴールドのボーダーボトム
- * - SP では横スクロール対応
+ * - SP（md 未満）では非表示。代わりに画面下部の BottomNav を使用する。
  */
 export default function NavBar() {
   const pathname = usePathname()
@@ -34,7 +34,7 @@ export default function NavBar() {
   }
 
   return (
-    <nav className="sticky top-0 z-[100] border-b border-gold-200/60 bg-white/70 backdrop-blur-md">
+    <nav className="sticky top-0 z-[100] hidden border-b border-gold-200/60 bg-white/70 backdrop-blur-md md:block">
       <ul className="mx-auto flex max-w-6xl items-center gap-1 overflow-x-auto px-3 py-1 sm:gap-2 sm:px-6 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {NAV_ITEMS.map((item) => {
           const href = item.segment ? `${BASE}/${item.segment}` : BASE

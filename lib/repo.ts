@@ -343,6 +343,15 @@ export async function getMedia(): Promise<Media[]> {
   return (data as Row[]).map(toMedia)
 }
 
+/** 指定テーブルの行数（head count のみ・データ本体は取得しない）。失敗時は 0。 */
+export async function getCount(table: string): Promise<number> {
+  const { count, error } = await read()
+    .from(table)
+    .select("*", { count: "exact", head: true })
+  if (error || count == null) return 0
+  return count
+}
+
 // === 派生ヘルパー ===
 
 /** ライブを新しい順で取得（getLives と同義。意図を明示する別名）。 */

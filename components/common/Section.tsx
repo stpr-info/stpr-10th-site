@@ -25,7 +25,7 @@ export default function Section({ id, subtitle, title, tone = "white", children 
   return (
     <section
       id={id}
-      className="scroll-mt-[72px] px-4 py-8 sm:px-5 sm:py-10"
+      className="px-4 py-8 sm:px-5 sm:py-10 md:scroll-mt-[72px]"
       style={{ background: tone === "pearl" ? T.pearl : "#ffffff" }}
     >
       <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
