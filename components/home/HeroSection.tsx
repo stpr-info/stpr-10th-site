@@ -82,33 +82,20 @@ function Rose({ cx, cy, s }: { cx: number; cy: number; s: number }) {
 
 /**
  * トップの HERO。
- * - Layer1: ピンク→ラベンダー→スカイのグラデーション背景
- * - Layer2: うっすら時計塔シルエット（静止・opacity 0.08）
- * - Layer3: ごく薄い花のアーチ（左下→上部中央→右下・opacity 0.06）
+ * - 背景: hero-bg.webp（花のアーチ・キャラ）を全面表示（唯一の背景）
+ * - 薄い花のアーチ(SVG) / 花びら / 小さな星(✦) / 宝石(ひし形)（装飾オーバーレイ）
  * - 主役: 10周年ロゴ（next/image）
- * - 期間テキスト / キャッチコピー / スクロール誘導
- * - 花びらパーティクル / 小さな星(✦) / 宝石(ひし形)（CSS アニメーション）
+ * - 期間テキスト / キャッチコピー / スクロール誘導（上部中央に固める）
  *
- * 時計（HeroClock）は廃止。アニメーションは fadeUp / twinkle / floatPetal /
- * scrollLine のみで、激しい常時回転系は使わない。
+ * グラデーション背景・時計シルエットは廃止。コンテンツはキャラに被らないよう
+ * 上部に寄せ、白い影で可読性を確保する。アニメーションは fadeUp / twinkle /
+ * floatPetal / scrollLine のみ。
  */
 export default function HeroSection() {
   return (
-    <section className="relative isolate flex min-h-[88vh] items-center justify-center overflow-hidden">
-      {/* Layer1: グラデーション背景 */}
-      <div
-        className="absolute inset-0 -z-30"
-        style={{
-          background:
-            "radial-gradient(ellipse at 30% 20%, rgba(251,207,232,0.5) 0%, transparent 50%)," +
-            "radial-gradient(ellipse at 70% 80%, rgba(196,181,253,0.4) 0%, transparent 50%)," +
-            "radial-gradient(ellipse at 50% 50%, rgba(186,230,253,0.3) 0%, transparent 60%)," +
-            "linear-gradient(160deg, #FFF8FB 0%, #FDE8F4 35%, #EDE8FD 65%, #E8F4FD 100%)",
-        }}
-      />
-
-      {/* 背景画像レイヤー（グラデーションの上・他の装飾の下に挟む） */}
-      <div className="-z-[25]" style={{ position: "absolute", inset: 0 }}>
+    <section className="relative isolate flex min-h-[75vh] items-center justify-start overflow-hidden">
+      {/* 背景画像レイヤー（HERO の唯一の背景・最背面・全面表示） */}
+      <div className="absolute inset-0 -z-30">
         <Image
           src="/images/hero-bg.webp"
           alt=""
@@ -116,51 +103,13 @@ export default function HeroSection() {
           style={{
             objectFit: "cover",
             objectPosition: "center top",
-            opacity: 0.18,
+            opacity: 1,
           }}
           priority
         />
       </div>
 
-      {/* Layer2: うっすら時計塔シルエット（静止・中央背面） */}
-      <svg
-        viewBox="0 0 200 200"
-        width={500}
-        height={500}
-        aria-hidden
-        className="pointer-events-none absolute left-1/2 top-1/2 -z-20 -translate-x-1/2 -translate-y-1/2"
-        style={{ opacity: 0.08, color: T.goldD }}
-      >
-        {/* 外周リング */}
-        <circle cx="100" cy="100" r="92" fill="none" stroke="currentColor" strokeWidth="3" />
-        <circle cx="100" cy="100" r="80" fill="none" stroke="currentColor" strokeWidth="1" />
-        {/* 時刻目盛り */}
-        {Array.from({ length: 12 }).map((_, i) => {
-          const a = (i * 30 - 90) * (Math.PI / 180)
-          const x1 = 100 + Math.cos(a) * 80
-          const y1 = 100 + Math.sin(a) * 80
-          const x2 = 100 + Math.cos(a) * 72
-          const y2 = 100 + Math.sin(a) * 72
-          return (
-            <line
-              key={i}
-              x1={x1}
-              y1={y1}
-              x2={x2}
-              y2={y2}
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-            />
-          )
-        })}
-        {/* 固定の針（10時10分風） */}
-        <line x1="100" y1="100" x2="64" y2="74" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
-        <line x1="100" y1="100" x2="136" y2="74" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
-        <circle cx="100" cy="100" r="5" fill="currentColor" />
-      </svg>
-
-      {/* Layer3: ごく薄い花のアーチ（左下→上部中央→右下 + 柱のバラ） */}
+      {/* ごく薄い花のアーチ（左下→上部中央→右下 + 柱のバラ） */}
       <svg
         viewBox="0 0 1200 600"
         preserveAspectRatio="xMidYMid slice"
@@ -228,8 +177,11 @@ export default function HeroSection() {
         ))}
       </div>
 
-      {/* === 中央コンテンツ === */}
-      <div className="relative z-10 flex flex-col items-center px-6 py-24 text-center sm:py-28">
+      {/* === コンテンツ（キャラに被らないよう上部中央に固める） === */}
+      <div
+        className="relative z-10 flex flex-col items-center px-6 pb-16 text-center"
+        style={{ paddingTop: "60px" }}
+      >
         {/* ロゴ（主役） */}
         <div className="mb-6" style={{ animation: "fadeUp 0.8s ease-out both" }}>
           <Image
@@ -250,6 +202,7 @@ export default function HeroSection() {
             fontSize: "clamp(12px, 2vw, 15px)",
             letterSpacing: "0.3em",
             color: T.goldD,
+            textShadow: "0 2px 8px rgba(255,255,255,0.8)",
             animation: "fadeUp 0.8s 0.2s ease-out both",
           }}
         >
@@ -264,6 +217,7 @@ export default function HeroSection() {
             color: T.muted,
             marginTop: "12px",
             letterSpacing: "0.1em",
+            textShadow: "0 2px 8px rgba(255,255,255,0.8)",
             animation: "fadeUp 0.8s 0.4s ease-out both",
           }}
         >
@@ -281,6 +235,7 @@ export default function HeroSection() {
               fontSize: "10px",
               letterSpacing: "0.3em",
               color: T.muted,
+              textShadow: "0 2px 8px rgba(255,255,255,0.8)",
             }}
           >
             SCROLL
