@@ -2,6 +2,7 @@ import PageContainer from "@/components/common/PageContainer"
 import LinkCard from "@/components/common/LinkCard"
 import EmptyState from "@/components/common/EmptyState"
 import { getStreams } from "@/lib/repo"
+import { resolveYoutubeThumbnail } from "@/lib/utils"
 
 export const dynamic = "force-dynamic"
 
@@ -25,7 +26,7 @@ export default async function StreamPage() {
               external
               seed={s.id}
               title={s.title}
-              thumbnail={s.thumbnail}
+              thumbnail={s.thumbnail ?? resolveYoutubeThumbnail(undefined, s.url)}
               date={s.publishDate}
               category={s.category}
               fallbackLabel="STREAM"
