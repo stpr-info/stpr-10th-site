@@ -1,0 +1,73 @@
+import { notFound } from "next/navigation"
+import { getEventBySlug } from "@/lib/repo"
+import SafeImage from "@/components/common/SafeImage"
+
+export const dynamic = "force-dynamic"
+
+export default async function EventDetailPage({
+  params,
+}: {
+  params: Promise<{ slug: string }>
+}) {
+  const { slug } = await params
+  const event = await getEventBySlug(slug)
+  if (!event) notFound()
+
+  return (
+    <div className="mx-auto max-w-3xl px-6 py-16">
+      <div
+        className="relative w-full overflow-hidden rounded-3xl border border-gold-200/70"
+        style={{ aspectRatio: "16/9" }}
+      >
+        <SafeImage
+          src={event.image}
+          alt={event.title}
+          fill
+          fallbackLabel="EVENT"
+          className="object-cover"
+          sizes="(min-width: 768px) 768px, 100vw"
+          priority
+        />
+      </div>
+
+      <div className="mt-8 flex flex-col gap-4">
+        <span className="w-fit rounded-full bg-rose-400/90 px-3 py-1 text-[11px] font-bold tracking-wider text-white">
+          {event.eventType}
+        </span>
+        <h1 className="font-serif text-2xl font-bold leading-snug text-[#3a2540]">
+          {event.title}
+        </h1>
+
+        <dl className="flex flex-col gap-2 text-sm">
+          <div className="flex gap-3">
+            <dt className="w-16 text-gold-600">日程</dt>
+            <dd className="text-[#3a2540]">{event.dateLabel}</dd>
+          </div>
+          {event.location && (
+            <div className="flex gap-3">
+              <dt className="w-16 text-gold-600">場所</dt>
+              <dd className="text-[#3a2540]">{event.location}</dd>
+            </div>
+          )}
+        </dl>
+
+        {event.description && (
+          <p className="whitespace-pre-wrap text-sm leading-7 text-[#6a5570]">
+            {event.description}
+          </p>
+        )}
+
+        {event.url && (
+          <a
+            href={event.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-2 inline-flex w-fit items-center rounded-full bg-gold-400 px-8 py-3 font-display text-sm tracking-[0.15em] text-white transition-colors hover:bg-gold-500"
+          >
+            詳細・参加方法 →
+          </a>
+        )}
+      </div>
+    </div>
+  )
+}
