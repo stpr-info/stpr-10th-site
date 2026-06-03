@@ -17,6 +17,7 @@ import type {
 } from "@/data/lives"
 import SafeImage from "@/components/common/SafeImage"
 import StatusBadge from "@/components/common/StatusBadge"
+import EventSection from "@/components/event/EventSection"
 
 const BASE = "/stpr-10th-anniversary"
 
@@ -173,31 +174,29 @@ export default async function LiveDetailPage({
         </div>
       )}
 
-      {/* チケット情報（種別と価格） */}
+      {/* チケット情報（種別と価格）: アコーディオン・新しい順（逆順） */}
       {live.ticketLineup && live.ticketLineup.length > 0 && (
-        <section className={SECTION}>
-          <h2 className={SECTION_H2}>チケット情報</h2>
+        <EventSection title="チケット情報">
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-            {live.ticketLineup.map((t, i) => (
+            {[...live.ticketLineup].reverse().map((t, i) => (
               <div key={i} className={`${BLOCK} flex items-center justify-between`}>
                 <span className="font-bold text-[#3a2540]">{t.ticketName}</span>
                 <span className="font-bold text-gold-700">{t.price}</span>
               </div>
             ))}
           </div>
-        </section>
+        </EventSection>
       )}
 
-      {/* TICKETスケジュール */}
+      {/* TICKETスケジュール: アコーディオン・新しい順（逆順） */}
       {live.ticketInfo && live.ticketInfo.length > 0 && (
-        <section className={SECTION}>
-          <h2 className={SECTION_H2}>TICKETスケジュール</h2>
+        <EventSection title="TICKETスケジュール">
           <div className="space-y-3">
-            {live.ticketInfo.map((t, i) => (
+            {[...live.ticketInfo].reverse().map((t, i) => (
               <TicketBlock key={i} ticket={t} />
             ))}
           </div>
-        </section>
+        </EventSection>
       )}
 
       {/* ライブビューイング */}
@@ -302,19 +301,15 @@ export default async function LiveDetailPage({
         </section>
       )}
 
-      {/* 会場スケジュール（SCHEDULE & STAGE） */}
+      {/* 会場スケジュール（SCHEDULE & STAGE）: アコーディオン */}
       {live.venues.length > 0 && (
-        <section className={SECTION}>
-          <h2 className={SECTION_H2}>
-            SCHEDULE &amp; STAGE
-            <span className="text-xs font-normal text-[#9a8aa0]">全{live.venues.length}会場</span>
-          </h2>
+        <EventSection title="SCHEDULE & STAGE" count={live.venues.length}>
           <div className="space-y-6">
             {live.venues.map((v, i) => (
               <VenueBlock key={i} venue={v} />
             ))}
           </div>
-        </section>
+        </EventSection>
       )}
     </div>
   )
