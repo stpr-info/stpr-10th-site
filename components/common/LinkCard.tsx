@@ -1,18 +1,16 @@
 import Link from "next/link"
-import type { CSSProperties } from "react"
-import {
-  formatDateDot,
-  accentColorFromSeed,
-  rotationFromSeed,
-  resolveYoutubeThumbnail,
-} from "@/lib/utils"
+import { formatDateDot, accentColorFromSeed, resolveYoutubeThumbnail } from "@/lib/utils"
 import SafeImage from "@/components/common/SafeImage"
+import "@/components/group/strawberry-prince/strawberry-prince.css"
 
 /**
  * 汎用カード（PROJECT / MOVIE / STREAM 用）。
- * EventCard・SongCard と同じスタイル（角丸・影・ピンク枠・シール風の傾き演出）。
+ * EventCard と同じ sp-sticker クラスでシール風の傾きを実現する。
+ * - 傾きは sp-sticker の nth-child（even=+1.2deg / 3n=-0.6deg / その他=-1.2deg）で決まり、
+ *   ホバーで rotate(0) + 浮き上がりに戻る。CSS 変数 --tilt や card-tilt は使わない。
+ * - sp-sticker は .theme-strawberry 配下でのみ効くため、グリッド側に theme-strawberry が必要。
  * - 内部リンク（external=false）は <Link>、外部リンク（external=true）は別タブの <a>。
- * - 傾き角度・左アクセント線の色は seed（slug / id）から決定的に決まる。
+ * - 左アクセント線の色は seed（slug / id、無ければ title）から決定的に決まる。
  */
 export default function LinkCard({
   href,
@@ -34,13 +32,13 @@ export default function LinkCard({
   category?: string
   fallbackLabel?: string
 }) {
-  // slug が無いカードは title をシードにして決定的な傾き・色を得る。
-  const tiltSeed = seed || title
+  // slug が無いカードは title をシードにして決定的なアクセント色を得る。
+  const colorSeed = seed || title
   // thumbnail 未設定でも href が YouTube URL なら hqdefault を自動取得。
   const thumb = thumbnail || resolveYoutubeThumbnail(undefined, href)
+  // EventCard と同じシール風の傾き（sp-sticker）。傾き角度は nth-child で決まる。
   const className =
-    "card-tilt group relative block overflow-hidden rounded-2xl border border-pink-200 bg-white p-3 shadow-md hover:shadow-lg"
-  const style = { "--tilt": `${rotationFromSeed(tiltSeed)}deg` } as CSSProperties
+    "sp-sticker group relative block overflow-hidden rounded-2xl border border-pink-200 bg-white p-3 shadow-md hover:shadow-lg"
 
   const inner = (
     <>
@@ -53,7 +51,7 @@ export default function LinkCard({
           top: "18%",
           bottom: "18%",
           width: 3,
-          background: accentColorFromSeed(tiltSeed),
+          background: accentColorFromSeed(colorSeed),
           borderRadius: 2,
         }}
       />
@@ -80,23 +78,19 @@ export default function LinkCard({
   )
 
   if (!href) {
-    return (
-      <div className={className} style={style}>
-        {inner}
-      </div>
-    )
+    return <div className={className}>{inner}</div>
   }
 
   if (external) {
     return (
-      <a href={href} target="_blank" rel="noopener noreferrer" className={className} style={style}>
+      <a href={href} target="_blank" rel="noopener noreferrer" className={className}>
         {inner}
       </a>
     )
   }
 
   return (
-    <Link href={href} className={className} style={style}>
+    <Link href={href} className={className}>
       {inner}
     </Link>
   )

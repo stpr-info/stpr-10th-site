@@ -19,7 +19,7 @@ export default async function ProjectPage() {
       {projects.length === 0 ? (
         <EmptyState label="企画情報を準備中です" />
       ) : (
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="theme-strawberry grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {projects.map((p) => (
             <LinkCard
               key={p.slug}

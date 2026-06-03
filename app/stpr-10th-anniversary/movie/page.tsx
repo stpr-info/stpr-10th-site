@@ -17,7 +17,7 @@ export default async function MoviePage() {
       {movies.length === 0 ? (
         <EmptyState label="動画情報を準備中です" />
       ) : (
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="theme-strawberry grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {movies.map((m) => (
             <LinkCard
               key={m.id}
