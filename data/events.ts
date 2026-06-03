@@ -99,6 +99,7 @@ export type Event = {
   slug: string
   title: string
   eventType: string
+  collabPartner?: string // コラボ先（コラボ相手・ブランド/作品名）
   isOngoing?: boolean
   periodStart?: string // 自由文字列
   periodEnd?: string

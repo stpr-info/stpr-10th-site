@@ -116,6 +116,16 @@ export default async function EventDetailPage({
           <h1 className="mb-2 font-serif text-xl font-bold text-[#3a2540] md:text-3xl">
             {event.title}
           </h1>
+          {event.collabPartner && (
+            <div className="mb-3 inline-flex items-center gap-2 rounded-xl border border-rose-200 bg-rose-50/70 px-4 py-2">
+              <span className="font-display text-[11px] tracking-[0.2em] text-rose-400">
+                COLLABORATION
+              </span>
+              <span className="font-serif text-base font-bold text-[#3a2540] md:text-lg">
+                ✕ {event.collabPartner}
+              </span>
+            </div>
+          )}
           <div className="mb-3 flex flex-wrap gap-3 text-sm text-[#6a5570]">
             <span>
               {formatPeriod(event.periodStart, event.periodEnd)}

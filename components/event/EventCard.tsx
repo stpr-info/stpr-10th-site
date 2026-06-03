@@ -97,6 +97,17 @@ export default function EventCard({
       >
         {event.title}
       </p>
+      {event.collabPartner && (
+        <p
+          className="mt-1 inline-block max-w-full truncate rounded-md px-2 py-0.5 text-xs font-bold"
+          style={{
+            background: "rgba(245, 134, 164, 0.16)",
+            color: "var(--sp-text-accent)",
+          }}
+        >
+          ✕ {event.collabPartner}
+        </p>
+      )}
       <p className="mt-1.5" style={DATE_STYLE}>
         {dateRange}
       </p>

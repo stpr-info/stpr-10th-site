@@ -232,6 +232,13 @@ export const TABLES: Record<string, TableConfig> = {
         required: true,
         placeholder: "総合イベント / コラボカフェ / キャンペーン 等（自由入力）",
       },
+      {
+        name: "collab_partner",
+        label: "コラボ先",
+        type: "text",
+        placeholder: "コラボ相手・ブランド/作品名 等",
+        help: "入力するとカード・詳細ページに目立つ形で表示されます。",
+      },
       { name: "is_ongoing", label: "開催中（継続中）", type: "boolean" },
       { name: "period_start", label: "開始日（文字列）", type: "text", placeholder: "2026-06-04 もしくは 2026年6月4日" },
       { name: "period_end", label: "終了日（文字列）", type: "text" },

@@ -68,18 +68,7 @@ export default function MediaListView({
               filtered.map((m) => (
                 <tr key={m.id} className="border-b border-gold-100/70 last:border-0">
                   <td className="px-4 py-3 font-medium text-[#3a2540]">
-                    {m.url ? (
-                      <a
-                        href={m.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-gold-700 underline-offset-2 hover:underline"
-                      >
-                        {m.programName}
-                      </a>
-                    ) : (
-                      m.programName
-                    )}
+                    {m.programName}
                   </td>
                   <td className="px-4 py-3 text-[#6a5570]">{m.station}</td>
                   <td className="px-4 py-3 text-[#6a5570]">{m.dateLabel}</td>

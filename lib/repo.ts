@@ -119,6 +119,7 @@ function toEvent(r: Record<string, unknown>): Event {
     slug: String(r.slug),
     title: String(r.title),
     eventType: String(r.event_type ?? ""),
+    collabPartner: u(r.collab_partner as string | null),
     isOngoing: u(r.is_ongoing as boolean | null),
     periodStart: u(r.period_start as string | null),
     periodEnd: u(r.period_end as string | null),

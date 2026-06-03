@@ -5,25 +5,10 @@ import type { Event } from "@/data/events"
 import type { SortOrder, ViewMode } from "@/lib/utils"
 import EventCard from "./EventCard"
 import ListControls from "@/components/common/ListControls"
-import GroupHeading from "@/components/common/GroupHeading"
 import EmptyState from "@/components/common/EmptyState"
 
-// eventType の表示順（既存ファンサイトの EventListView 準拠）。
-const EVENT_TYPE_ORDER = [
-  "総合イベント",
-  "配信",
-  "コラボカフェ",
-  "キッチンカー",
-  "キャンペーン",
-  "物販特典",
-  "メディア出演",
-  "投稿企画",
-  "冠番組",
-  "大会・コンテスト",
-  "その他",
-]
-
-/** イベント一覧（eventType 別セクション / 並び替え / 表示切替）。カードはSP groupデザイン移植。
+/** イベント一覧（種別で分けずフラット表示 / 並び替え / 表示切替）。
+ *  種別は各カード内に小さく表示する（EventCard）。
  *  showControls=false（TOP 用）で並び替え・表示切替 UI を隠す。 */
 export default function EventListView({
   events,
@@ -39,33 +24,11 @@ export default function EventListView({
     return <EmptyState label="イベント情報を準備中です" />
   }
 
-  // eventType ごとにグループ化。
-  const typeMap = new Map<string, Event[]>()
-  for (const e of events) {
-    const t = e.eventType || "その他"
-    if (!typeMap.has(t)) typeMap.set(t, [])
-    typeMap.get(t)!.push(e)
-  }
-
-  const orderedTypes = [
-    ...EVENT_TYPE_ORDER.filter((t) => typeMap.has(t)),
-    ...[...typeMap.keys()].filter((t) => !EVENT_TYPE_ORDER.includes(t)).sort(),
-  ]
-
-  const sortItems = (items: Event[]) =>
-    [...items].sort((a, b) => {
-      const cmp = (a.periodStart ?? "").localeCompare(b.periodStart ?? "")
-      return sort === "newest" ? -cmp : cmp
-    })
-
-  const sortedGroups = orderedTypes.map((type) => ({
-    type,
-    items: sortItems(typeMap.get(type)!),
-  }))
-
-  // global index（sp-stamp / holo / 左バー色を fansite と同じ基準で再現）。
-  const indexBySlug = new Map<string, number>()
-  sortedGroups.flatMap((g) => g.items).forEach((e, i) => indexBySlug.set(e.slug, i))
+  // 種別でグルーピングせず、日付（periodStart）でフラットに並べる。
+  const sorted = [...events].sort((a, b) => {
+    const cmp = (a.periodStart ?? "").localeCompare(b.periodStart ?? "")
+    return sort === "newest" ? -cmp : cmp
+  })
 
   const gridCls =
     view === "grid"
@@ -73,7 +36,7 @@ export default function EventListView({
       : "grid grid-cols-1 gap-3"
 
   return (
-    <div className="theme-strawberry flex flex-col gap-2">
+    <div className="theme-strawberry flex flex-col gap-4">
       {showControls && (
         <ListControls
           sort={sort}
@@ -83,20 +46,11 @@ export default function EventListView({
         />
       )}
 
-      {sortedGroups.map(({ type, items }) => (
-        <section key={type} className="mt-6">
-          <GroupHeading label={type} />
-          <div className={gridCls}>
-            {items.map((e) => (
-              <EventCard
-                key={e.slug}
-                event={e}
-                index={indexBySlug.get(e.slug) ?? 0}
-              />
-            ))}
-          </div>
-        </section>
-      ))}
+      <div className={gridCls}>
+        {sorted.map((e, i) => (
+          <EventCard key={e.slug} event={e} index={i} />
+        ))}
+      </div>
     </div>
   )
 }
