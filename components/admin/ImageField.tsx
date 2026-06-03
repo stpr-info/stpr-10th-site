@@ -7,32 +7,56 @@ type Props = {
   /** フォーム送信名。制御モード（onChange あり）では省略可。 */
   name?: string
   table: string // アップロードパス用
-  initialValue?: string
-  /** 制御モード: 値を親が保持する場合に渡す */
+  initialValue?: string | string[]
+  /** 制御モード: 値を親が保持する場合に渡す（単一モードのみ） */
   value?: string
   onChange?: (url: string) => void
   /** プレビューの高さを抑えたいネスト用 */
   compact?: boolean
+  /** 複数画像モード（URL配列を JSON で hidden input に書き出す） */
+  multiple?: boolean
 }
 
 /**
  * 画像フィールド。
- * - 非制御モード: 内部 state を持ち、name 付きテキスト入力でフォーム送信する
- * - 制御モード（onChange 指定）: value/onChange で親が値を保持（RepeaterField のサブ項目用）
- * - 「ファイルを選択」で Storage（media バケット）へアップロード → 公開URLを自動入力
- * - URL があればプレビュー表示
+ * - 単一モード: 1枚の画像（text 列）。非制御は name 付き input、制御は value/onChange。
+ * - 複数モード（multiple）: 複数画像を一覧表示・個別削除でき、URL配列を JSON 文字列で
+ *   hidden input（name）へ書き出す。保存側は text[] 配列へ変換する。
  * パス: {table}/{slug}/{filename}（slug は同フォームの slug 入力から取得）
  */
-export default function ImageField({
-  name,
-  table,
-  initialValue,
-  value,
-  onChange,
-  compact,
-}: Props) {
+export default function ImageField(props: Props) {
+  if (props.multiple) return <MultiImageField {...props} />
+  return <SingleImageField {...props} />
+}
+
+/** 同フォームの slug を使って 1 ファイルをアップロードし、公開URLを返す。 */
+async function uploadFromForm(
+  file: File,
+  table: string,
+  form: HTMLFormElement | null,
+): Promise<{ url?: string; error?: string }> {
+  const slugEl = form?.elements.namedItem("slug") as HTMLInputElement | null
+  const slug = slugEl?.value?.trim() ?? ""
+  const fd = new FormData()
+  fd.set("table", table)
+  fd.set("slug", slug)
+  fd.set("file", file)
+  try {
+    const res = await uploadImage(fd)
+    if (res.error) return { error: res.error }
+    return { url: res.url }
+  } catch {
+    return { error: "アップロード中にエラーが発生しました。" }
+  }
+}
+
+/* =========================================================================
+ * 単一画像モード（従来の挙動）
+ * ========================================================================= */
+function SingleImageField({ name, table, initialValue, value, onChange, compact }: Props) {
   const controlled = onChange !== undefined
-  const [internal, setInternal] = useState(initialValue ?? "")
+  const initStr = typeof initialValue === "string" ? initialValue : ""
+  const [internal, setInternal] = useState(initStr)
   const url = controlled ? (value ?? "") : internal
   const setUrl = (v: string) => {
     if (controlled) onChange!(v)
@@ -47,28 +71,12 @@ export default function ImageField({
     const file = e.target.files?.[0]
     if (!file) return
     setError(null)
-
-    // 同じフォーム内の slug 入力値を取得してパスに使う。
-    const form = e.target.form
-    const slugEl = form?.elements.namedItem("slug") as HTMLInputElement | null
-    const slug = slugEl?.value?.trim() ?? ""
-
-    const fd = new FormData()
-    fd.set("table", table)
-    fd.set("slug", slug)
-    fd.set("file", file)
-
     setUploading(true)
-    try {
-      const res = await uploadImage(fd)
-      if (res.error) setError(res.error)
-      else if (res.url) setUrl(res.url)
-    } catch {
-      setError("アップロード中にエラーが発生しました。")
-    } finally {
-      setUploading(false)
-      if (fileRef.current) fileRef.current.value = ""
-    }
+    const res = await uploadFromForm(file, table, e.target.form)
+    if (res.error) setError(res.error)
+    else if (res.url) setUrl(res.url)
+    setUploading(false)
+    if (fileRef.current) fileRef.current.value = ""
   }
 
   const previewH = compact ? "h-20" : "h-32"
@@ -128,6 +136,149 @@ export default function ImageField({
         placeholder="https://… もしくは /images/…"
         className="rounded-lg border border-gold-200 bg-white px-3 py-2 text-sm outline-none transition-colors focus:border-gold-400 focus:ring-2 focus:ring-gold-100"
       />
+
+      {error && <p className="text-xs text-rose-500">{error}</p>}
+    </div>
+  )
+}
+
+/* =========================================================================
+ * 複数画像モード（一覧 + 個別削除 + まとめてアップロード）
+ * ========================================================================= */
+function normalizeToArray(v?: string | string[]): string[] {
+  if (Array.isArray(v)) {
+    return v.filter((x): x is string => typeof x === "string" && x.trim().length > 0)
+  }
+  if (typeof v === "string" && v.trim()) {
+    try {
+      const a = JSON.parse(v)
+      if (Array.isArray(a)) {
+        return a.filter((x): x is string => typeof x === "string" && x.trim().length > 0)
+      }
+    } catch {
+      // JSON でなければ単一URLとして扱う
+    }
+    return [v.trim()]
+  }
+  return []
+}
+
+function MultiImageField({ name, table, initialValue, compact }: Props) {
+  const [urls, setUrls] = useState<string[]>(() => normalizeToArray(initialValue))
+  const [uploading, setUploading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const fileRef = useRef<HTMLInputElement>(null)
+
+  async function handleFiles(e: React.ChangeEvent<HTMLInputElement>) {
+    const files = Array.from(e.target.files ?? [])
+    if (files.length === 0) return
+    setError(null)
+    setUploading(true)
+    const added: string[] = []
+    for (const file of files) {
+      const res = await uploadFromForm(file, table, e.target.form)
+      if (res.error) {
+        setError(res.error)
+        break
+      }
+      if (res.url) added.push(res.url)
+    }
+    if (added.length) setUrls((prev) => [...prev, ...added])
+    setUploading(false)
+    if (fileRef.current) fileRef.current.value = ""
+  }
+
+  const removeAt = (i: number) => setUrls(urls.filter((_, idx) => idx !== i))
+  const addByUrl = () => setUrls([...urls, ""])
+  const updateAt = (i: number, v: string) =>
+    setUrls(urls.map((u, idx) => (idx === i ? v : u)))
+
+  const cleaned = urls.map((u) => u.trim()).filter((u) => u.length > 0)
+  const thumbH = compact ? "h-20" : "h-24"
+
+  return (
+    <div
+      onKeyDown={(e) => {
+        if (e.key === "Enter" && e.target instanceof HTMLInputElement) {
+          e.preventDefault()
+        }
+      }}
+      className="flex flex-col gap-3"
+    >
+      {/* 追加済み画像の一覧（個別削除） */}
+      {urls.length > 0 && (
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+          {urls.map((u, i) => (
+            <div
+              key={i}
+              className="relative flex flex-col gap-1.5 rounded-xl border border-gold-200 bg-gold-50/30 p-2"
+            >
+              <div className="relative">
+                {u ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={u}
+                    alt={`画像 ${i + 1}`}
+                    className={`${thumbH} w-full rounded-lg border border-gold-200 bg-white object-contain`}
+                  />
+                ) : (
+                  <div
+                    className={`flex ${thumbH} w-full items-center justify-center rounded-lg border border-dashed border-gold-200 bg-white/60 text-[11px] text-[#9a8aa0]`}
+                  >
+                    URL未入力
+                  </div>
+                )}
+                <button
+                  type="button"
+                  onClick={() => removeAt(i)}
+                  aria-label={`画像 ${i + 1} を削除`}
+                  className="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full border border-rose-300 bg-white text-sm leading-none text-rose-500 shadow-sm transition-colors hover:bg-rose-50"
+                >
+                  ×
+                </button>
+              </div>
+              {/* URL 手入力/確認 */}
+              <input
+                type="text"
+                value={u}
+                onChange={(e) => updateAt(i, e.target.value)}
+                placeholder="https://…"
+                className="w-full rounded-md border border-gold-200 bg-white px-2 py-1 text-[11px] outline-none focus:border-gold-400"
+              />
+            </div>
+          ))}
+        </div>
+      )}
+
+      <div className="flex flex-wrap items-center gap-2">
+        <button
+          type="button"
+          onClick={() => fileRef.current?.click()}
+          disabled={uploading}
+          className="rounded-full border border-gold-300 bg-white px-4 py-1.5 text-xs text-gold-700 transition-colors hover:bg-gold-50 disabled:opacity-50"
+        >
+          {uploading ? "アップロード中…" : "＋ 画像を追加（複数選択可）"}
+        </button>
+        <button
+          type="button"
+          onClick={addByUrl}
+          className="rounded-full border border-gold-200 px-4 py-1.5 text-xs text-[#6a5570] transition-colors hover:bg-gold-50"
+        >
+          URLで追加
+        </button>
+      </div>
+
+      <input
+        ref={fileRef}
+        type="file"
+        accept="image/*"
+        multiple
+        onChange={handleFiles}
+        className="hidden"
+      />
+
+      {/* 保存値: URL配列の JSON 文字列 */}
+      <input type="hidden" name={name} value={JSON.stringify(cleaned)} />
 
       {error && <p className="text-xs text-rose-500">{error}</p>}
     </div>

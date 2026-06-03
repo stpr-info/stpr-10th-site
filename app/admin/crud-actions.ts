@@ -56,6 +56,26 @@ function parseField(field: Field, formData: FormData): unknown {
       }
     }
 
+    case "image": {
+      // 複数モード: ImageField が URL配列の JSON を書き出す → text[] へ。
+      if (field.multiple) {
+        const s = String(raw ?? "").trim()
+        if (!s) return []
+        try {
+          const arr = JSON.parse(s)
+          return Array.isArray(arr)
+            ? arr.filter((v): v is string => typeof v === "string" && v.length > 0)
+            : []
+        } catch {
+          return []
+        }
+      }
+      // 単一モード: 1枚の URL（text）。
+      const s = String(raw ?? "")
+      if (field.required) return s
+      return s === "" ? null : s
+    }
+
     case "date": {
       const s = String(raw ?? "").trim()
       return s === "" ? null : s

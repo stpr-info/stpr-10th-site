@@ -106,7 +106,18 @@ export default function RecordForm({
               <ImageField
                 name={field.name}
                 table={table}
-                initialValue={value == null ? "" : String(value)}
+                multiple={field.multiple}
+                initialValue={
+                  field.multiple
+                    ? Array.isArray(value)
+                      ? (value as string[])
+                      : value == null
+                        ? []
+                        : [String(value)]
+                    : value == null
+                      ? ""
+                      : String(value)
+                }
               />
             )}
 
