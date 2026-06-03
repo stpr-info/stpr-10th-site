@@ -15,6 +15,10 @@ type Props = {
   compact?: boolean
   /** 複数画像モード（URL配列を JSON で hidden input に書き出す） */
   multiple?: boolean
+  /** 複数モードの制御値（repeater 行内などで使用） */
+  multiValue?: string[]
+  /** 複数モードの制御 onChange（指定時は hidden input を出さない） */
+  onMultiChange?: (urls: string[]) => void
 }
 
 /**
@@ -163,8 +167,15 @@ function normalizeToArray(v?: string | string[]): string[] {
   return []
 }
 
-function MultiImageField({ name, table, initialValue, compact }: Props) {
-  const [urls, setUrls] = useState<string[]>(() => normalizeToArray(initialValue))
+function MultiImageField({ name, table, initialValue, compact, multiValue, onMultiChange }: Props) {
+  const controlled = onMultiChange !== undefined
+  const [internal, setInternal] = useState<string[]>(() => normalizeToArray(initialValue))
+  const urls = controlled ? (multiValue ?? []) : internal
+  const setUrls = (next: string[]) => {
+    if (controlled) onMultiChange!(next)
+    else setInternal(next)
+  }
+
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const fileRef = useRef<HTMLInputElement>(null)
@@ -183,7 +194,7 @@ function MultiImageField({ name, table, initialValue, compact }: Props) {
       }
       if (res.url) added.push(res.url)
     }
-    if (added.length) setUrls((prev) => [...prev, ...added])
+    if (added.length) setUrls([...urls, ...added])
     setUploading(false)
     if (fileRef.current) fileRef.current.value = ""
   }
@@ -277,8 +288,8 @@ function MultiImageField({ name, table, initialValue, compact }: Props) {
         className="hidden"
       />
 
-      {/* 保存値: URL配列の JSON 文字列 */}
-      <input type="hidden" name={name} value={JSON.stringify(cleaned)} />
+      {/* 保存値: URL配列の JSON 文字列（非制御モードのみ。制御時は親が値を保持） */}
+      {!controlled && <input type="hidden" name={name} value={JSON.stringify(cleaned)} />}
 
       {error && <p className="text-xs text-rose-500">{error}</p>}
     </div>

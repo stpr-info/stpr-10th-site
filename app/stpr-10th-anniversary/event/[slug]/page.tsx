@@ -298,10 +298,10 @@ export default async function EventDetailPage({
           {event.customSection.map((c, i) => (
             <section key={i} className="rounded-2xl border border-gold-200/70 bg-white/55 p-4 shadow-sm backdrop-blur-sm md:p-6">
               {c.sectionTitle && <h2 className={SECTION_H2}>{c.sectionTitle}</h2>}
-              {c.image && (
+              {toImageList(c.image).map((src, idx) => (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={c.image} alt={c.sectionTitle ?? ""} className="mb-3 w-full rounded-xl" />
-              )}
+                <img key={idx} src={src} alt={c.sectionTitle ?? ""} className="mb-3 w-full rounded-xl" />
+              ))}
               {c.content && (
                 <p className="whitespace-pre-wrap text-sm text-[#6a5570]">{c.content}</p>
               )}
@@ -314,6 +314,15 @@ export default async function EventDetailPage({
 }
 
 // ====== サブコンポーネント ======
+
+/** 画像値（単一URL文字列 or URL配列）を配列に正規化する。 */
+function toImageList(v: unknown): string[] {
+  if (Array.isArray(v)) {
+    return v.filter((x): x is string => typeof x === "string" && x.length > 0)
+  }
+  if (typeof v === "string" && v.length > 0) return [v]
+  return []
+}
 
 function StoreBlock({ store }: { store: EventStore }) {
   return (
@@ -353,10 +362,10 @@ function MenuBlock({ menu }: { menu: EventMenu }) {
   return (
     <div>
       <h3 className="mb-2 text-base font-bold text-[#3a2540]">{menu.menuName}</h3>
-      {menu.image && (
+      {toImageList(menu.image).map((src, idx) => (
         // eslint-disable-next-line @next/next/no-img-element
-        <img src={menu.image} alt={menu.menuName ?? ""} className="mb-2 w-full rounded-lg" />
-      )}
+        <img key={idx} src={src} alt={menu.menuName ?? ""} className="mb-2 w-full rounded-lg" />
+      ))}
       {menu.description && (
         <p className="whitespace-pre-wrap text-sm text-[#6a5570]">{menu.description}</p>
       )}
@@ -369,10 +378,10 @@ function EventGoodsBlock({ goods }: { goods: EventGoods }) {
   return (
     <div>
       <h3 className="mb-3 text-base font-bold text-[#3a2540]">{goods.goodsName}</h3>
-      {goods.image && (
+      {toImageList(goods.image).map((src, idx) => (
         // eslint-disable-next-line @next/next/no-img-element
-        <img src={goods.image} alt={goods.goodsName ?? ""} className="mb-3 w-full rounded-lg" />
-      )}
+        <img key={idx} src={src} alt={goods.goodsName ?? ""} className="mb-3 w-full rounded-lg" />
+      ))}
       <div className="space-y-1 text-sm text-[#6a5570]">
         {goods.salePeriod && <p>{goods.salePeriod}</p>}
         {goods.info && <p className="mt-2 whitespace-pre-wrap text-xs text-[#9a8aa0]">{goods.info}</p>}

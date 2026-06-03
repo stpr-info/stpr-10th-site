@@ -31,6 +31,8 @@ export type SubField = {
   options?: string[] // select 用
   placeholder?: string
   itemFields?: SubField[] // ネスト repeater 用
+  /** type:"image" で複数枚アップロードを許可（行内 jsonb に URL 配列で保存）。 */
+  multiple?: boolean
 }
 
 export type Field = {
@@ -275,7 +277,7 @@ export const TABLES: Record<string, TableConfig> = {
         type: "repeater",
         itemFields: [
           { name: "menuName", label: "メニュー名", type: "text" },
-          { name: "image", label: "画像", type: "image" },
+          { name: "image", label: "画像", type: "image", multiple: true },
           { name: "info", label: "補足", type: "text" },
           { name: "description", label: "説明", type: "textarea" },
         ],
@@ -286,7 +288,7 @@ export const TABLES: Record<string, TableConfig> = {
         type: "repeater",
         itemFields: [
           { name: "goodsName", label: "商品名", type: "text" },
-          { name: "image", label: "画像", type: "image" },
+          { name: "image", label: "画像", type: "image", multiple: true },
           { name: "salePeriod", label: "販売期間", type: "text" },
           { name: "purchaseUrl", label: "購入URL", type: "text" },
           { name: "info", label: "補足", type: "textarea" },
@@ -376,7 +378,7 @@ export const TABLES: Record<string, TableConfig> = {
         itemFields: [
           { name: "sectionTitle", label: "セクションタイトル", type: "text" },
           { name: "content", label: "内容", type: "textarea" },
-          { name: "image", label: "画像", type: "image" },
+          { name: "image", label: "画像", type: "image", multiple: true },
         ],
       },
       { name: "is_active", label: "公開（有効）", type: "boolean" },

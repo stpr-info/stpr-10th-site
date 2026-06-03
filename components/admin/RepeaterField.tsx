@@ -40,6 +40,26 @@ function SubFieldInput({
   table: string
 }) {
   if (field.type === "image") {
+    // 複数モード: URL配列を制御値として保持（行内 jsonb に配列で保存）。
+    if (field.multiple) {
+      const arr = Array.isArray(value)
+        ? (value as unknown[]).filter((v): v is string => typeof v === "string")
+        : typeof value === "string" && value
+          ? [value]
+          : []
+      return (
+        <div className="flex flex-col gap-1 sm:col-span-2">
+          <span className="text-[11px] font-medium text-gold-700">{field.label}</span>
+          <ImageField
+            table={table}
+            compact
+            multiple
+            multiValue={arr}
+            onMultiChange={(urls) => onChange(urls)}
+          />
+        </div>
+      )
+    }
     return (
       <div className="flex flex-col gap-1">
         <span className="text-[11px] font-medium text-gold-700">{field.label}</span>

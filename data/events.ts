@@ -15,7 +15,7 @@ export type EventStore = {
 /** メニュー・特典商品 */
 export type EventMenu = {
   menuName?: string
-  image?: string
+  image?: string | string[]
   description?: string
   info?: string
 }
@@ -23,7 +23,7 @@ export type EventMenu = {
 /** グッズ販売 */
 export type EventGoods = {
   goodsName?: string
-  image?: string
+  image?: string | string[]
   salePeriod?: string
   purchaseUrl?: string
   info?: string
@@ -92,7 +92,7 @@ export type EventTournament = {
 export type EventCustom = {
   sectionTitle?: string
   content?: string
-  image?: string
+  image?: string | string[]
 }
 
 export type Event = {
