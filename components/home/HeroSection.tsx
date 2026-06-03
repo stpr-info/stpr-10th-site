@@ -1,84 +1,75 @@
-import HeroClock from "./HeroClock"
-import HeroLogo from "./HeroLogo"
+import Image from "next/image"
 
-// 花びらパーティクルの配置（決定的な値でハイドレーション不一致を回避）。
+// 花びらパーティクル（決定的な値でハイドレーション不一致を回避）。控えめに9個。
 const PETALS = [
-  { left: "8%", delay: "0s", duration: "14s", size: 14 },
-  { left: "20%", delay: "3s", duration: "18s", size: 10 },
-  { left: "34%", delay: "6s", duration: "15s", size: 16 },
-  { left: "48%", delay: "1.5s", duration: "20s", size: 12 },
-  { left: "61%", delay: "4.5s", duration: "16s", size: 9 },
-  { left: "73%", delay: "2s", duration: "19s", size: 15 },
-  { left: "86%", delay: "5.5s", duration: "13s", size: 11 },
-  { left: "93%", delay: "7s", duration: "17s", size: 13 },
+  { left: "6%", delay: "0s", duration: "15s", size: 13 },
+  { left: "17%", delay: "3s", duration: "18s", size: 10 },
+  { left: "29%", delay: "6s", duration: "16s", size: 15 },
+  { left: "42%", delay: "1.5s", duration: "20s", size: 11 },
+  { left: "55%", delay: "4.5s", duration: "17s", size: 9 },
+  { left: "67%", delay: "2s", duration: "19s", size: 14 },
+  { left: "78%", delay: "5.5s", duration: "14s", size: 11 },
+  { left: "88%", delay: "7s", duration: "18s", size: 13 },
+  { left: "95%", delay: "3.5s", duration: "16s", size: 10 },
 ]
 
-// 星のきらめき配置。
+// 小さな星（✦）20個。サイズ4〜10px / opacity 0.3〜0.6 / twinkle。決定的座標。
 const STARS = [
-  { top: "12%", left: "14%", delay: "0s", r: 2.5 },
-  { top: "22%", left: "82%", delay: "0.6s", r: 3 },
-  { top: "34%", left: "30%", delay: "1.2s", r: 2 },
-  { top: "18%", left: "60%", delay: "0.9s", r: 2.5 },
-  { top: "44%", left: "88%", delay: "1.6s", r: 2 },
-  { top: "52%", left: "10%", delay: "0.3s", r: 3 },
-  { top: "60%", left: "70%", delay: "2s", r: 2.2 },
+  { top: 8, left: 12, size: 8, opacity: 0.5, delay: 0 },
+  { top: 14, left: 78, size: 6, opacity: 0.45, delay: 0.6 },
+  { top: 21, left: 30, size: 5, opacity: 0.4, delay: 1.2 },
+  { top: 11, left: 55, size: 7, opacity: 0.55, delay: 0.9 },
+  { top: 27, left: 88, size: 4, opacity: 0.35, delay: 1.6 },
+  { top: 33, left: 8, size: 9, opacity: 0.5, delay: 0.3 },
+  { top: 38, left: 64, size: 5, opacity: 0.4, delay: 2.0 },
+  { top: 44, left: 20, size: 7, opacity: 0.5, delay: 1.1 },
+  { top: 18, left: 42, size: 4, opacity: 0.3, delay: 2.4 },
+  { top: 52, left: 82, size: 6, opacity: 0.45, delay: 0.5 },
+  { top: 58, left: 14, size: 8, opacity: 0.55, delay: 1.8 },
+  { top: 63, left: 48, size: 5, opacity: 0.4, delay: 0.8 },
+  { top: 69, left: 73, size: 6, opacity: 0.5, delay: 2.2 },
+  { top: 74, left: 26, size: 5, opacity: 0.4, delay: 1.4 },
+  { top: 78, left: 90, size: 7, opacity: 0.5, delay: 0.2 },
+  { top: 83, left: 6, size: 6, opacity: 0.45, delay: 1.9 },
+  { top: 86, left: 58, size: 10, opacity: 0.6, delay: 0.7 },
+  { top: 90, left: 37, size: 5, opacity: 0.4, delay: 1.3 },
+  { top: 47, left: 95, size: 4, opacity: 0.3, delay: 2.6 },
+  { top: 55, left: 38, size: 6, opacity: 0.45, delay: 1.0 },
 ]
+
+// ✦ 4方向星のポリゴン頂点（viewBox 0 0 24 24）。
+const STAR_POINTS = "12,2 13.6,10.4 22,12 13.6,13.6 12,22 10.4,13.6 2,12 10.4,10.4"
 
 /**
  * トップの HERO。
- * - ピンク→ラベンダー→スカイのグラデーション背景
- * - 花のアーチ・柱の SVG 装飾
- * - リアルタイム時計盤（HeroClock）
- * - 10周年ロゴ（HeroLogo）
- * - 花びらパーティクル / 星のきらめき（CSS アニメーション）
+ * - 背景: hero-bg.webp を objectFit:contain で全面表示（引き伸ばし禁止）。
+ *   余白（レターボックス）はピンク〜ラベンダーのグラデで埋める。
+ * - セクションは画像比率に合わせて aspect-ratio 16/9。
+ * - 上部中央にロゴのみを配置（テキストは画像下の帯＝page.tsx 側へ）。
+ * - 星(✦)・花びらの装飾は維持。時計シルエット・旧グラデ背景は廃止。
  */
 export default function HeroSection() {
   return (
-    <section className="relative overflow-hidden">
-      {/* グラデーション背景 */}
-      <div
-        className="absolute inset-0 -z-10"
-        style={{
-          background:
-            "linear-gradient(170deg, #FBCFE8 0%, #FDF4F0 30%, #C4B5FD 70%, #BAE6FD 100%)",
-        }}
-      />
-
-      {/* 花のアーチ（上部に額縁状の弧） */}
-      <svg
-        viewBox="0 0 1200 400"
-        preserveAspectRatio="xMidYMin slice"
-        className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-full w-full opacity-70"
-        aria-hidden
-      >
-        <defs>
-          <linearGradient id="archGrad" x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0%" stopColor="#D4A853" />
-            <stop offset="50%" stopColor="#F5E6B8" />
-            <stop offset="100%" stopColor="#D4A853" />
-          </linearGradient>
-        </defs>
-        {/* アーチ本体 */}
-        <path
-          d="M40 400 V160 Q40 40 240 40 H960 Q1160 40 1160 160 V400"
-          fill="none"
-          stroke="url(#archGrad)"
-          strokeWidth="6"
-          opacity="0.8"
+    <section
+      className="relative isolate flex flex-col items-center justify-start overflow-hidden"
+      style={{ aspectRatio: "16 / 9" }}
+    >
+      {/* 背景画像（objectFit: cover・横幅いっぱい） */}
+      <div className="absolute inset-0 -z-30">
+        <Image
+          src="/images/hero-bg.webp"
+          alt=""
+          fill
+          style={{
+            objectFit: "cover",
+            objectPosition: "center center",
+            opacity: 1,
+          }}
+          priority
         />
-        {/* 柱の装飾 */}
-        <rect x="30" y="160" width="20" height="240" rx="6" fill="url(#archGrad)" opacity="0.5" />
-        <rect x="1150" y="160" width="20" height="240" rx="6" fill="url(#archGrad)" opacity="0.5" />
-        {/* アーチ上の花（円で簡略表現） */}
-        {[240, 360, 600, 840, 960].map((cx, i) => (
-          <g key={cx} opacity="0.85">
-            <circle cx={cx} cy={48 + (i % 2) * 6} r="14" fill="#F9A8D4" />
-            <circle cx={cx} cy={48 + (i % 2) * 6} r="6" fill="#FDF5D3" />
-          </g>
-        ))}
-      </svg>
+      </div>
 
-      {/* 花びらパーティクル */}
+      {/* 花びらパーティクル（HERO 内に閉じ込め・absolute） */}
       <div className="pointer-events-none absolute inset-0 -z-[5] overflow-hidden" aria-hidden>
         {PETALS.map((p, i) => (
           <span
@@ -95,40 +86,48 @@ export default function HeroSection() {
         ))}
       </div>
 
-      {/* 星のきらめき */}
-      <svg
-        className="pointer-events-none absolute inset-0 -z-[5] h-full w-full"
-        aria-hidden
-      >
+      {/* 小さな星(✦) */}
+      <div className="pointer-events-none absolute inset-0 -z-[5] overflow-hidden" aria-hidden>
         {STARS.map((s, i) => (
-          <circle
-            key={i}
-            cx={s.left}
-            cy={s.top}
-            r={s.r}
-            fill="#FFFDF7"
-            style={{ animation: `twinkle 3s ease-in-out ${s.delay} infinite` }}
-          />
+          <span
+            key={`star-${i}`}
+            className="absolute"
+            style={{ top: `${s.top}%`, left: `${s.left}%`, opacity: s.opacity }}
+          >
+            <svg
+              width={s.size}
+              height={s.size}
+              viewBox="0 0 24 24"
+              style={{ display: "block", animation: `twinkle 3s ease-in-out ${s.delay}s infinite` }}
+            >
+              <polygon points={STAR_POINTS} fill="#FFFDF7" />
+            </svg>
+          </span>
         ))}
-      </svg>
-
-      {/* 本体 */}
-      <div className="mx-auto flex max-w-4xl flex-col items-center gap-8 px-6 py-24 text-center sm:py-32">
-        {/* 時計盤 */}
-        <div className="h-40 w-40 sm:h-52 sm:w-52" style={{ animation: "fadeUp 1s ease-out both" }}>
-          <HeroClock />
-        </div>
-
-        {/* ロゴ */}
-        <HeroLogo />
-
-        {/* キャッチ */}
-        <p className="max-w-md font-serif text-sm leading-7 text-[#6a5570] sm:text-base">
-          すとぷり、10周年。
-          <br />
-          時計塔と祝福の庭園で紡ぐ、感謝のアニバーサリー。
-        </p>
       </div>
+
+      {/* === 中央のコンテンツ（ロゴのみ・アーチ頂点付近に配置） === */}
+      <div
+        className="relative z-10 flex flex-col items-center px-6"
+        style={{ paddingTop: "5%" }}
+      >
+        <div style={{ animation: "fadeUp 0.8s ease-out both" }} />
+      </div>
+
+      {/* 下部の白フェード（直後の白背景エリアとシームレスに繋ぐ） */}
+      <div
+        aria-hidden
+        style={{
+          position: "absolute",
+          bottom: 0,
+          left: 0,
+          right: 0,
+          height: "30%",
+          background: "linear-gradient(to bottom, transparent, rgba(255,248,251,0.95))",
+          zIndex: 5,
+          pointerEvents: "none",
+        }}
+      />
     </section>
   )
 }

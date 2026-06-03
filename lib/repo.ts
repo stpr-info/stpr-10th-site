@@ -33,6 +33,7 @@ import type { Song, SongType } from "@/data/songs"
 import type { Album, AlbumEdition, AlbumBonus, AlbumTrack } from "@/data/albums"
 import type { Magazine } from "@/data/magazines"
 import type { Media, MediaType } from "@/data/media"
+import type { Visual } from "@/data/visuals"
 
 // 読み取り用クライアント（モジュール内で 1 度だけ生成）。
 let _client: ReturnType<typeof createBrowserClient> | null = null
@@ -119,6 +120,7 @@ function toEvent(r: Record<string, unknown>): Event {
     slug: String(r.slug),
     title: String(r.title),
     eventType: String(r.event_type ?? ""),
+    collabPartner: u(r.collab_partner as string | null),
     isOngoing: u(r.is_ongoing as boolean | null),
     periodStart: u(r.period_start as string | null),
     periodEnd: u(r.period_end as string | null),
@@ -332,6 +334,38 @@ export async function getMagazines(): Promise<Magazine[]> {
   return (data as Row[]).map(toMagazine)
 }
 
+export async function getMagazineById(id: string): Promise<Magazine | undefined> {
+  const { data, error } = await read()
+    .from("magazines")
+    .select("*")
+    .eq("id", id)
+    .maybeSingle()
+  if (error || !data) return undefined
+  return toMagazine(data as Row)
+}
+
+// === ビジュアル ===
+function toVisual(r: Record<string, unknown>): Visual {
+  return {
+    id: String(r.id),
+    slug: u(r.slug as string | null),
+    title: u(r.title as string | null),
+    image: u(r.image as string | null),
+    releaseDate: u(r.release_date as string | null),
+    member: u(r.member as string | null),
+  }
+}
+
+export async function getVisuals(): Promise<Visual[]> {
+  const { data, error } = await read()
+    .from("visuals")
+    .select("*")
+    .order("release_date", { ascending: false, nullsFirst: false })
+    .order("created_at", { ascending: false })
+  if (error || !data) return []
+  return (data as Row[]).map(toVisual)
+}
+
 // === メディア ===
 export async function getMedia(): Promise<Media[]> {
   const { data, error } = await read()
@@ -341,6 +375,15 @@ export async function getMedia(): Promise<Media[]> {
     .order("created_at", { ascending: true })
   if (error || !data) return []
   return (data as Row[]).map(toMedia)
+}
+
+/** 指定テーブルの行数（head count のみ・データ本体は取得しない）。失敗時は 0。 */
+export async function getCount(table: string): Promise<number> {
+  const { count, error } = await read()
+    .from(table)
+    .select("*", { count: "exact", head: true })
+  if (error || count == null) return 0
+  return count
 }
 
 // === 派生ヘルパー ===

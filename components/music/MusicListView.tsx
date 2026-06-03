@@ -12,8 +12,15 @@ import EmptyState from "@/components/common/EmptyState"
 
 const TABS = ["ALL", "ORIGINAL", "COVER", "歌ってみた"]
 
-/** ミュージック一覧（ALL/ORIGINAL/COVER フィルタ / 年代別 / グリッド・リスト切替 / 並び替え） */
-export default function MusicListView({ songs }: { songs: Song[] }) {
+/** ミュージック一覧（ALL/ORIGINAL/COVER フィルタ / 年代別 / グリッド・リスト切替 / 並び替え）
+ *  showControls=false（TOP 用）でフィルタ・並び替え・表示切替 UI を隠す。 */
+export default function MusicListView({
+  songs,
+  showControls = true,
+}: {
+  songs: Song[]
+  showControls?: boolean
+}) {
   const [tab, setTab] = useState("ALL")
   const [sort, setSort] = useState<SortOrder>("newest")
   const [view, setView] = useState<ViewMode>("grid")
@@ -27,15 +34,17 @@ export default function MusicListView({ songs }: { songs: Song[] }) {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <FilterTabs options={TABS} value={tab} onChange={setTab} />
-        <ListControls
-          sort={sort}
-          onSortChange={setSort}
-          view={view}
-          onViewChange={setView}
-        />
-      </div>
+      {showControls && (
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <FilterTabs options={TABS} value={tab} onChange={setTab} />
+          <ListControls
+            sort={sort}
+            onSortChange={setSort}
+            view={view}
+            onViewChange={setView}
+          />
+        </div>
+      )}
 
       {filtered.length === 0 ? (
         <EmptyState label="該当する楽曲がありません" />

@@ -10,8 +10,15 @@ import FilterTabs from "@/components/common/FilterTabs"
 import GroupHeading from "@/components/common/GroupHeading"
 import EmptyState from "@/components/common/EmptyState"
 
-/** グッズ一覧（カテゴリフィルタ / 年代別セクション / グリッド・リスト切替 / 並び替え） */
-export default function GoodsListView({ goods }: { goods: Goods[] }) {
+/** グッズ一覧（カテゴリフィルタ / 年代別 / 並び替え / 表示切替）。カードはSP groupデザイン移植。
+ *  showControls=false（TOP 用）でフィルタ・並び替え・表示切替 UI を隠す。 */
+export default function GoodsListView({
+  goods,
+  showControls = true,
+}: {
+  goods: Goods[]
+  showControls?: boolean
+}) {
   const categories = useMemo(() => {
     const set: string[] = []
     for (const g of goods) if (!set.includes(g.productType)) set.push(g.productType)
@@ -30,17 +37,28 @@ export default function GoodsListView({ goods }: { goods: Goods[] }) {
     category === "ALL" ? goods : goods.filter((g) => g.productType === category)
   const groups = groupByYear(filtered, (g) => g.releaseDate, sort)
 
+  const indexBySlug = new Map<string, number>()
+  groups.flatMap((g) => g.items).forEach((g, i) => indexBySlug.set(g.slug, i))
+
+  const gridCls =
+    view === "grid"
+      ? // LiveListView と同じ列数（SP 1 列）に統一し、カードサイズを揃える。
+        "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4"
+      : "grid grid-cols-1 gap-3"
+
   return (
-    <div className="flex flex-col gap-4">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <FilterTabs options={categories} value={category} onChange={setCategory} />
-        <ListControls
-          sort={sort}
-          onSortChange={setSort}
-          view={view}
-          onViewChange={setView}
-        />
-      </div>
+    <div className="theme-strawberry flex flex-col gap-4">
+      {showControls && (
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <FilterTabs options={categories} value={category} onChange={setCategory} />
+          <ListControls
+            sort={sort}
+            onSortChange={setSort}
+            view={view}
+            onViewChange={setView}
+          />
+        </div>
+      )}
 
       {filtered.length === 0 ? (
         <EmptyState label="該当するグッズがありません" />
@@ -48,19 +66,16 @@ export default function GoodsListView({ goods }: { goods: Goods[] }) {
         groups.map(({ year, items }) => (
           <section key={year} className="mt-4">
             <GroupHeading label={year} />
-            {view === "grid" ? (
-              <div className="grid grid-cols-2 gap-4 sm:gap-6 lg:grid-cols-3">
-                {items.map((g) => (
-                  <GoodsCard key={g.slug} goods={g} view="grid" />
-                ))}
-              </div>
-            ) : (
-              <div className="flex flex-col gap-2">
-                {items.map((g) => (
-                  <GoodsCard key={g.slug} goods={g} view="list" />
-                ))}
-              </div>
-            )}
+            <div className={gridCls}>
+              {items.map((g) => (
+                <GoodsCard
+                  key={g.slug}
+                  goods={g}
+                  index={indexBySlug.get(g.slug) ?? 0}
+                  view={view}
+                />
+              ))}
+            </div>
           </section>
         ))
       )}

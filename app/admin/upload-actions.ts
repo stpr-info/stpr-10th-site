@@ -8,6 +8,16 @@ const BUCKET = "media"
 
 export type UploadResult = { url?: string; error?: string }
 
+/** スラッグ未入力時に使うユニークなパスセグメントを生成する。 */
+function uniqueSegment(): string {
+  try {
+    if (globalThis.crypto?.randomUUID) return globalThis.crypto.randomUUID()
+  } catch {
+    // crypto 不可環境はタイムスタンプ + ランダムにフォールバック
+  }
+  return `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`
+}
+
 /** ファイル名を Storage キーに安全な形へ整形（拡張子は保持）。 */
 function sanitizeFilename(name: string): string {
   const dot = name.lastIndexOf(".")
@@ -40,9 +50,6 @@ export async function uploadImage(formData: FormData): Promise<UploadResult> {
   const file = formData.get("file")
 
   if (!table) return { error: "テーブルが不明です。" }
-  if (!slugRaw) {
-    return { error: "先に「スラッグ（URL）」を入力してから画像を選択してください。" }
-  }
   if (!(file instanceof File) || file.size === 0) {
     return { error: "ファイルが選択されていません。" }
   }
@@ -54,7 +61,11 @@ export async function uploadImage(formData: FormData): Promise<UploadResult> {
     return { error: "画像サイズは 10MB 以下にしてください。" }
   }
 
-  const slug = slugRaw.replace(/[^a-zA-Z0-9-_]+/g, "-").replace(/^-+|-+$/g, "") || "item"
+  // スラッグがあればそれを、無ければユニークセグメントをパスに使う。
+  // （保存されるのは絶対公開URLなので、後でスラッグを設定しても影響しない）
+  const slug = slugRaw
+    ? slugRaw.replace(/[^a-zA-Z0-9-_]+/g, "-").replace(/^-+|-+$/g, "") || "item"
+    : `_${uniqueSegment()}`
   const path = `${table}/${slug}/${sanitizeFilename(file.name)}`
 
   let supabase

@@ -3,7 +3,11 @@
 // メンバーは固定データのため data/members.ts を直接参照する。
 
 import { MEMBERS, type Member } from "@/data/members"
-import type { LiveStatus, Venue } from "@/data/lives"
+import type { Live, LiveStatus, Venue } from "@/data/lives"
+import type { Event } from "@/data/events"
+import type { Goods } from "@/data/goods"
+import type { Magazine } from "@/data/magazines"
+import type { Media } from "@/data/media"
 
 /**
  * ライブのステータスを日付から判定する。
@@ -63,6 +67,20 @@ export function formatPeriod(start?: string, end?: string): string {
   const s = formatDateDot(start)
   if (end && end !== start) return `${s} 〜 ${formatDateDot(end)}`
   return s
+}
+
+/**
+ * 今日から指定日までの残り日数。過去/不正な日付なら null。
+ * カウントダウン表示用（force-dynamic ページでサーバー描画）。
+ */
+export function getDaysUntil(dateStr?: string): number | null {
+  if (!dateStr) return null
+  const m = /^(\d{4})-(\d{1,2})-(\d{1,2})/.exec(dateStr)
+  if (!m) return null
+  const now = new Date()
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+  const target = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]))
+  return Math.round((target.getTime() - today.getTime()) / 86400000)
 }
 
 /**
@@ -151,4 +169,135 @@ export function formatVenueName(v: Venue): string {
 /** 会場配列を " / " 連結した一覧表示用文字列にする。 */
 export function venuesSummary(venues: Venue[]): string {
   return venues.map(formatVenueName).join(" / ")
+}
+
+// =========================================================================
+// HISTORY 年表（buildTimeline）
+//   lives / events / goods / songs / albums を年表アイテムへ集約する。
+// =========================================================================
+
+export type TimelineCategory =
+  | "anniversary"
+  | "live"
+  | "event"
+  | "goods"
+  | "magazine"
+  | "media"
+
+export type TimelineItem = {
+  date: string // YYYY-MM-DD
+  year: number
+  endDate?: string
+  category: TimelineCategory
+  title: string
+  description?: string
+  href: string
+}
+
+const TIMELINE_BASE = "/stpr-10th-anniversary"
+
+/** 各種日付文字列（ISO / 区切り / 和暦）を YYYY-MM-DD に正規化。失敗時 null。 */
+function normalizeTimelineDate(raw?: string): string | null {
+  if (!raw) return null
+  const s = String(raw).trim()
+  let m = s.match(/(\d{4})[/\-.](\d{1,2})[/\-.](\d{1,2})/)
+  if (m) return `${m[1]}-${m[2].padStart(2, "0")}-${m[3].padStart(2, "0")}`
+  m = s.match(/(\d{4})年\s*(\d{1,2})月\s*(\d{1,2})日/)
+  if (m) return `${m[1]}-${m[2].padStart(2, "0")}-${m[3].padStart(2, "0")}`
+  return null
+}
+
+/**
+ * lives / events / goods / magazines / media を年表アイテムへ集約する。
+ * - 日付は各データの代表日（live/event=periodStart, goods/magazine=releaseDate,
+ *   media=dateLabel）を正規化して使用。
+ * - すとぷり 10周年（2026-06-04）を DB 非依存の固定エントリとして必ず追加。
+ * - 日付昇順（古い→新しい。同日はカテゴリ順）で返す。
+ */
+export function buildTimeline(opts: {
+  lives?: Live[]
+  events?: Event[]
+  goods?: Goods[]
+  magazines?: Magazine[]
+  media?: Media[]
+}): TimelineItem[] {
+  const out: TimelineItem[] = []
+
+  const push = (
+    raw: string | undefined,
+    base: Omit<TimelineItem, "date" | "year" | "endDate">,
+    rawEnd?: string,
+  ) => {
+    const date = normalizeTimelineDate(raw)
+    if (!date) return
+    const year = Number(date.slice(0, 4))
+    let endDate: string | undefined
+    if (rawEnd) {
+      const e = normalizeTimelineDate(rawEnd)
+      if (e && e !== date) endDate = e
+    }
+    out.push({ ...base, date, year, endDate })
+  }
+
+  // 固定エントリ: すとぷり 10周年（データベース非依存）
+  out.push({
+    date: "2026-06-04",
+    year: 2026,
+    category: "anniversary",
+    title: "すとぷり 10周年",
+    href: "#",
+  })
+
+  for (const l of opts.lives ?? []) {
+    push(
+      l.periodStart,
+      { category: "live", title: l.title, description: l.description, href: `${TIMELINE_BASE}/live/${l.slug}` },
+      l.periodEnd,
+    )
+  }
+  for (const e of opts.events ?? []) {
+    push(
+      e.periodStart,
+      { category: "event", title: e.title, description: e.description, href: `${TIMELINE_BASE}/event/${e.slug}` },
+      e.periodEnd,
+    )
+  }
+  for (const g of opts.goods ?? []) {
+    push(g.releaseDate, {
+      category: "goods",
+      title: g.title,
+      description: g.description,
+      href: `${TIMELINE_BASE}/goods/${g.slug}`,
+    })
+  }
+  for (const m of opts.magazines ?? []) {
+    push(m.releaseDate, {
+      category: "magazine",
+      title: m.name,
+      description: m.issue,
+      href: `${TIMELINE_BASE}/magazine/${m.id}`,
+    })
+  }
+  for (const m of opts.media ?? []) {
+    push(m.dateLabel, {
+      category: "media",
+      title: m.programName,
+      description: m.station,
+      href: "#",
+    })
+  }
+
+  const catOrder: Record<TimelineCategory, number> = {
+    anniversary: 0,
+    live: 1,
+    event: 2,
+    goods: 3,
+    magazine: 4,
+    media: 5,
+  }
+  out.sort((a, b) => {
+    if (a.date !== b.date) return a.date < b.date ? -1 : 1
+    return catOrder[a.category] - catOrder[b.category]
+  })
+  return out
 }

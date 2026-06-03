@@ -12,6 +12,7 @@ export type FieldType =
   | "json" // 生 JSON → jsonb
   | "number"
   | "image" // Storage 画像（ファイル選択 → 公開URL）。保存値は text(URL)
+  | "imagelist" // 複数画像（ファイル選択を行追加）。保存値は text[]
   | "repeater" // 行の追加/削除ができる専用UI → jsonb 配列
 
 /** repeater の行内サブ項目（テキストエリア廃止のため専用UIで使う） */
@@ -30,6 +31,8 @@ export type SubField = {
   options?: string[] // select 用
   placeholder?: string
   itemFields?: SubField[] // ネスト repeater 用
+  /** type:"image" で複数枚アップロードを許可（行内 jsonb に URL 配列で保存）。 */
+  multiple?: boolean
 }
 
 export type Field = {
@@ -41,6 +44,9 @@ export type Field = {
   placeholder?: string
   help?: string
   itemFields?: SubField[] // repeater 用の行スキーマ
+  /** type:"image" で複数枚アップロードを許可（保存は URL の配列 → text[]）。
+   *  メインビジュアル/サムネイル等の1枚画像では指定しない。 */
+  multiple?: boolean
 }
 
 export type TableConfig = {
@@ -155,8 +161,8 @@ export const TABLES: Record<string, TableConfig> = {
           { name: "info", label: "補足", type: "textarea" },
         ],
       },
-      { name: "fc_info", label: "FC情報 画像URL（カンマ区切り）", type: "csv" },
-      { name: "upgrade_goods_info", label: "アップグレード物販 画像URL（カンマ区切り）", type: "csv" },
+      { name: "fc_info", label: "FC情報 画像", type: "image", multiple: true },
+      { name: "upgrade_goods_info", label: "アップグレード物販 画像", type: "image", multiple: true },
       { name: "official_site_url", label: "公式サイトURL", type: "text" },
       { name: "official_playlist_url", label: "公式プレイリストURL", type: "text" },
       { name: "official_report_url", label: "公式レポートURL", type: "text" },
@@ -200,7 +206,7 @@ export const TABLES: Record<string, TableConfig> = {
       { name: "sale_period", label: "販売期間（自由文字列）", type: "text", placeholder: "2026/06/04〜2026/06/30" },
       { name: "price", label: "価格", type: "text", placeholder: "¥1,500" },
       { name: "key_visual", label: "キービジュアル画像", type: "image", help: "画像ファイルを選択するとアップロードして公開URLを自動入力します。" },
-      { name: "lineup_images", label: "ラインナップ画像URL（カンマ区切り）", type: "csv" },
+      { name: "lineup_images", label: "ラインナップ画像", type: "image", multiple: true },
       { name: "purchase_url", label: "購入URL", type: "text" },
       { name: "delivery_info", label: "配送情報", type: "textarea" },
       { name: "related_live", label: "関連ライブ（スラッグ）", type: "text", placeholder: "anniv-tour-2026" },
@@ -222,21 +228,16 @@ export const TABLES: Record<string, TableConfig> = {
       {
         name: "event_type",
         label: "イベント種別",
-        type: "select",
+        type: "text",
         required: true,
-        options: [
-          "総合イベント",
-          "配信",
-          "コラボカフェ",
-          "キッチンカー",
-          "キャンペーン",
-          "物販特典",
-          "メディア出演",
-          "投稿企画",
-          "冠番組",
-          "大会・コンテスト",
-          "その他",
-        ],
+        placeholder: "総合イベント / コラボカフェ / キャンペーン 等（自由入力）",
+      },
+      {
+        name: "collab_partner",
+        label: "コラボ先",
+        type: "text",
+        placeholder: "コラボ相手・ブランド/作品名 等",
+        help: "入力するとカード・詳細ページに目立つ形で表示されます。",
       },
       { name: "is_ongoing", label: "開催中（継続中）", type: "boolean" },
       { name: "period_start", label: "開始日（文字列）", type: "text", placeholder: "2026-06-04 もしくは 2026年6月4日" },
@@ -271,7 +272,7 @@ export const TABLES: Record<string, TableConfig> = {
         type: "repeater",
         itemFields: [
           { name: "menuName", label: "メニュー名", type: "text" },
-          { name: "image", label: "画像", type: "image" },
+          { name: "image", label: "画像", type: "image", multiple: true },
           { name: "info", label: "補足", type: "text" },
           { name: "description", label: "説明", type: "textarea" },
         ],
@@ -282,7 +283,7 @@ export const TABLES: Record<string, TableConfig> = {
         type: "repeater",
         itemFields: [
           { name: "goodsName", label: "商品名", type: "text" },
-          { name: "image", label: "画像", type: "image" },
+          { name: "image", label: "画像", type: "image", multiple: true },
           { name: "salePeriod", label: "販売期間", type: "text" },
           { name: "purchaseUrl", label: "購入URL", type: "text" },
           { name: "info", label: "補足", type: "textarea" },
@@ -372,7 +373,7 @@ export const TABLES: Record<string, TableConfig> = {
         itemFields: [
           { name: "sectionTitle", label: "セクションタイトル", type: "text" },
           { name: "content", label: "内容", type: "textarea" },
-          { name: "image", label: "画像", type: "image" },
+          { name: "image", label: "画像", type: "image", multiple: true },
         ],
       },
       { name: "is_active", label: "公開（有効）", type: "boolean" },
@@ -474,6 +475,21 @@ export const TABLES: Record<string, TableConfig> = {
       { name: "content", label: "内容", type: "textarea", placeholder: "表紙・巻頭特集 等" },
       { name: "image", label: "画像", type: "image", help: "画像ファイルを選択するとアップロードして公開URLを自動入力します。" },
       { name: "url", label: "URL", type: "text" },
+      { name: "sort_order", label: "並び順", type: "number" },
+    ],
+  },
+
+  visuals: {
+    key: "visuals",
+    label: "ビジュアル",
+    titleField: "title",
+    listColumns: ["title", "member", "release_date"],
+    fields: [
+      { name: "slug", label: "スラッグ（URL・任意）", type: "text" },
+      { name: "title", label: "タイトル", type: "text", required: true },
+      { name: "image", label: "画像", type: "image", help: "画像ファイルを選択するとアップロードして公開URLを自動入力します。" },
+      { name: "release_date", label: "公開日", type: "date" },
+      { name: "member", label: "メンバー", type: "text", placeholder: "全体 / 莉犬 等" },
       { name: "sort_order", label: "並び順", type: "number" },
     ],
   },

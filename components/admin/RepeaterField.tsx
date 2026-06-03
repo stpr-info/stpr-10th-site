@@ -40,8 +40,28 @@ function SubFieldInput({
   table: string
 }) {
   if (field.type === "image") {
+    // 複数モード: URL配列を制御値として保持（行内 jsonb に配列で保存）。
+    if (field.multiple) {
+      const arr = Array.isArray(value)
+        ? (value as unknown[]).filter((v): v is string => typeof v === "string")
+        : typeof value === "string" && value
+          ? [value]
+          : []
+      return (
+        <div className="flex flex-col gap-1 sm:col-span-2">
+          <span className="text-[11px] font-medium text-gold-700">{field.label}</span>
+          <ImageField
+            table={table}
+            compact
+            multiple
+            multiValue={arr}
+            onMultiChange={(urls) => onChange(urls)}
+          />
+        </div>
+      )
+    }
     return (
-      <label className="flex flex-col gap-1">
+      <div className="flex flex-col gap-1">
         <span className="text-[11px] font-medium text-gold-700">{field.label}</span>
         <ImageField
           table={table}
@@ -49,7 +69,7 @@ function SubFieldInput({
           value={typeof value === "string" ? value : ""}
           onChange={(url) => onChange(url)}
         />
-      </label>
+      </div>
     )
   }
 
@@ -211,7 +231,14 @@ export default function RepeaterField({
   const cleaned = rows.filter((r) => !isEmptyRow(r))
 
   return (
-    <>
+    <div
+      onKeyDown={(e) => {
+        // 行内テキスト入力での Enter による submit を防ぐ（textarea は除外）。
+        if (e.key === "Enter" && e.target instanceof HTMLInputElement) {
+          e.preventDefault()
+        }
+      }}
+    >
       <RowsEditor
         rows={rows}
         onChange={setRows}
@@ -219,6 +246,6 @@ export default function RepeaterField({
         table={table}
       />
       <input type="hidden" name={name} value={JSON.stringify(cleaned)} />
-    </>
+    </div>
   )
 }

@@ -15,7 +15,7 @@ export type EventStore = {
 /** メニュー・特典商品 */
 export type EventMenu = {
   menuName?: string
-  image?: string
+  image?: string | string[]
   description?: string
   info?: string
 }
@@ -23,7 +23,7 @@ export type EventMenu = {
 /** グッズ販売 */
 export type EventGoods = {
   goodsName?: string
-  image?: string
+  image?: string | string[]
   salePeriod?: string
   purchaseUrl?: string
   info?: string
@@ -92,13 +92,14 @@ export type EventTournament = {
 export type EventCustom = {
   sectionTitle?: string
   content?: string
-  image?: string
+  image?: string | string[]
 }
 
 export type Event = {
   slug: string
   title: string
   eventType: string
+  collabPartner?: string // コラボ先（コラボ相手・ブランド/作品名）
   isOngoing?: boolean
   periodStart?: string // 自由文字列
   periodEnd?: string

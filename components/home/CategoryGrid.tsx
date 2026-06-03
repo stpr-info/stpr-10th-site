@@ -1,39 +1,95 @@
-import Link from "next/link"
+"use client"
 
-const BASE = "/stpr-10th-anniversary"
+import { T } from "@/lib/theme"
 
-// 各カテゴリページへのリンクカード。
-const CATEGORIES: { segment: string; en: string; ja: string }[] = [
-  { segment: "live", en: "LIVE", ja: "ライブ" },
-  { segment: "goods", en: "GOODS", ja: "グッズ" },
-  { segment: "event", en: "EVENT", ja: "イベント" },
-  { segment: "music", en: "MUSIC", ja: "ミュージック" },
-  { segment: "album", en: "ALBUM", ja: "アルバム" },
-  { segment: "magazine", en: "MAGAZINE", ja: "雑誌" },
-  { segment: "media", en: "MEDIA", ja: "メディア" },
-  { segment: "members", en: "MEMBERS", ja: "メンバー" },
+type Category = {
+  id: string
+  label: string
+  ja: string
+}
+
+// 全カード同サイズの 4 列グリッド。並び順は表示レイアウトに準拠。
+// [ LIVE ][ GOODS ][ EVENT ][ MUSIC ]
+// [ ALBUM ][ MAGAZINE ][ MEDIA ][ MEMBERS ]
+const CATEGORIES: Category[] = [
+  { id: "live", label: "LIVE", ja: "ライブ" },
+  { id: "goods", label: "GOODS", ja: "グッズ" },
+  { id: "event", label: "EVENT", ja: "イベント" },
+  { id: "music", label: "MUSIC", ja: "ミュージック" },
+  { id: "album", label: "ALBUM", ja: "アルバム" },
+  { id: "magazine", label: "MAGAZINE", ja: "雑誌" },
+  { id: "media", label: "MEDIA", ja: "メディア" },
+  { id: "members", label: "MEMBERS", ja: "メンバー" },
 ]
 
-/** トップのカテゴリグリッド。各ページへの入り口。 */
-export default function CategoryGrid() {
+/**
+ * トップのカテゴリグリッド。各セクション（同一ページのアンカー）への入り口。
+ * 全カード同サイズ。SP/タブレット 2 列、PC 4 列。高さは 120px 固定。
+ * omit に含まれる id（例: データ0件の "music" / "album"）は非表示にする。
+ */
+export default function CategoryGrid({ omit = [] }: { omit?: string[] }) {
+  const categories = CATEGORIES.filter((c) => !omit.includes(c.id))
   return (
-    <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-      {CATEGORIES.map((c) => (
-        <Link
-          key={c.segment}
-          href={`${BASE}/${c.segment}`}
-          className="group relative flex flex-col items-center justify-center gap-2 overflow-hidden rounded-2xl border border-gold-200/70 bg-white/55 px-4 py-8 text-center backdrop-blur-sm transition-all hover:-translate-y-1.5 hover:border-gold-300 hover:shadow-[0_12px_32px_rgba(212,168,83,0.25)]"
+    <div className="mx-auto grid max-w-[900px] grid-cols-2 gap-2.5 px-4 md:grid-cols-4 md:gap-4 md:px-5">
+      {categories.map((c) => (
+        <a
+          key={c.id}
+          href={`#${c.id}`}
+          className="flex h-[72px] flex-col items-center justify-center rounded-xl p-2 no-underline md:h-[120px] md:rounded-[20px] md:p-4"
+          style={{
+            background: "rgba(255,255,255,0.6)",
+            backdropFilter: "blur(12px)",
+            WebkitBackdropFilter: "blur(12px)",
+            border: "1px solid rgba(212,168,83,0.3)",
+            boxShadow: "0 4px 20px rgba(212,168,83,0.08)",
+            transition: "transform 0.25s, box-shadow 0.25s",
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = "translateY(-4px)"
+            e.currentTarget.style.boxShadow = "0 12px 32px rgba(212,168,83,0.18)"
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = ""
+            e.currentTarget.style.boxShadow = "0 4px 20px rgba(212,168,83,0.08)"
+          }}
         >
-          {/* 額縁風の内側ライン */}
+          {/* 英語ラベル */}
+          <span
+            className="text-[12px] font-semibold md:text-[16px]"
+            style={{
+              fontFamily: "var(--font-cinzel), serif",
+              letterSpacing: "0.2em",
+              color: T.goldD,
+              marginBottom: "2px",
+            }}
+          >
+            {c.label}
+          </span>
+
+          {/* 日本語ラベル */}
+          <span
+            className="text-[10px] md:text-[12px]"
+            style={{
+              fontFamily: "var(--font-noto-serif-jp), serif",
+              color: T.muted,
+              letterSpacing: "0.1em",
+            }}
+          >
+            {c.ja}
+          </span>
+
+          {/* ゴールドの細いライン（下部装飾・PC のみ） */}
           <span
             aria-hidden
-            className="pointer-events-none absolute inset-2 rounded-xl border border-gold-200/50 transition-colors group-hover:border-rose-200"
+            className="hidden md:block"
+            style={{
+              marginTop: "12px",
+              width: "30px",
+              height: "1px",
+              background: `linear-gradient(90deg, transparent, ${T.gold}, transparent)`,
+            }}
           />
-          <span className="font-display text-base tracking-[0.22em] text-gold-600 transition-colors group-hover:text-gold-700">
-            {c.en}
-          </span>
-          <span className="font-serif text-sm text-[#6a5570]">{c.ja}</span>
-        </Link>
+        </a>
       ))}
     </div>
   )
