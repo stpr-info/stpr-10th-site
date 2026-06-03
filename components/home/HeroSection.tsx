@@ -109,7 +109,7 @@ export default function HeroSection() {
       {/* === 中央のコンテンツ（ロゴのみ・アーチ頂点付近に配置） === */}
       <div
         className="relative z-10 flex flex-col items-center px-6"
-        style={{ paddingTop: "15%" }}
+        style={{ paddingTop: "5%" }}
       >
         <div style={{ animation: "fadeUp 0.8s ease-out both" }}>
           <Image

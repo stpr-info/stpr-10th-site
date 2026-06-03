@@ -23,12 +23,12 @@ const CATEGORIES: Category[] = [
   { id: "media", label: "MEDIA", ja: "メディア", size: "small" },
 ]
 
-// サイズ別のレイアウト。SP（〜767px）は 2 列・全カード同サイズ。
-// md 以上でのみ span / 余白 / 最小高 / フォントを切り替えてベントー化する。
+// サイズ別のレイアウト。高さは全カード 200px で統一（grid の auto-rows）。
+// ベントー感は large（LIVE/MEMBERS）を md で横2列ぶち抜きにすることで維持する。
 const SIZE_CLASS: Record<Size, string> = {
-  large: "md:col-span-2 md:row-span-2 md:min-h-[240px] md:p-12",
-  medium: "md:min-h-[120px] md:p-8",
-  small: "md:min-h-[90px] md:p-6",
+  large: "md:col-span-2",
+  medium: "",
+  small: "",
 }
 const LABEL_CLASS: Record<Size, string> = {
   large: "text-[15px] md:text-[22px]",
@@ -44,12 +44,12 @@ const JA_CLASS: Record<Size, string> = {
 /** トップのカテゴリグリッド（ベントーレイアウト）。各ページへの入り口。 */
 export default function CategoryGrid() {
   return (
-    <div className="mx-auto grid max-w-[900px] grid-cols-2 gap-4 px-5 md:grid-cols-3">
+    <div className="mx-auto grid max-w-[900px] auto-rows-[200px] grid-cols-2 gap-4 px-5 md:grid-cols-3">
       {CATEGORIES.map((c) => (
         <a
           key={c.id}
           href={`#${c.id}`}
-          className={`flex min-h-[110px] flex-col items-center justify-center rounded-[20px] p-6 no-underline ${SIZE_CLASS[c.size]}`}
+          className={`flex h-full flex-col items-center justify-center rounded-[20px] p-6 no-underline ${SIZE_CLASS[c.size]}`}
           style={{
             background: "rgba(255,255,255,0.6)",
             backdropFilter: "blur(12px)",

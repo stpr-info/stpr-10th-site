@@ -79,21 +79,20 @@ export default function MemberCardModal({ member, onClose }: Props) {
               }}
             >
               <CardFace member={member}>
+                {/* 背景（画像が透過 PNG でもカード地色が出るように） */}
                 <div
-                  className="flex h-full w-full items-center justify-center"
+                  className="absolute inset-0"
                   style={{ backgroundColor: member.bgColor }}
-                >
-                  <div className="relative h-3/4 w-3/4">
-                    <SafeImage
-                      src={member.miniChara}
-                      alt={`${member.name} ミニキャラ`}
-                      fill
-                      fallbackLabel={member.nameEn}
-                      className="object-contain"
-                      sizes="288px"
-                    />
-                  </div>
-                </div>
+                />
+                {/* ミニキャラをカードいっぱいに表示（cover） */}
+                <SafeImage
+                  src={member.miniChara}
+                  alt={`${member.name} ミニキャラ`}
+                  fill
+                  fallbackLabel={member.nameEn}
+                  className="object-cover"
+                  sizes="384px"
+                />
                 <NameBanner member={member} />
               </CardFace>
             </div>
