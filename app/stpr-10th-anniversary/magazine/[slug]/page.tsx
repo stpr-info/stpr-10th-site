@@ -4,6 +4,7 @@ import { notFound } from "next/navigation"
 import { formatDateDot } from "@/lib/utils"
 import { getMagazineById } from "@/lib/repo"
 import SafeImage from "@/components/common/SafeImage"
+import ImageGallery from "@/components/common/ImageGallery"
 
 const BASE = "/stpr-10th-anniversary"
 
@@ -77,6 +78,11 @@ export default async function MagazineDetailPage({
           {mag.issue && (
             <p className="text-base font-medium text-gold-700">{mag.issue}</p>
           )}
+          {mag.status === "upcoming" && (
+            <span className="mt-1 inline-block w-fit rounded-full bg-rose-400 px-3 py-1 text-xs font-bold text-white">
+              発売予定
+            </span>
+          )}
 
           <dl className="mt-1 flex flex-col gap-2 text-sm">
             {mag.releaseDate && (
@@ -115,6 +121,14 @@ export default async function MagazineDetailPage({
           <p className="whitespace-pre-wrap text-sm leading-relaxed text-[#6a5570]">
             {mag.content}
           </p>
+        </section>
+      )}
+
+      {/* 画像ギャラリー（全サムネ + 全画面ライトボックス） */}
+      {mag.images && mag.images.length > 0 && (
+        <section className="mt-6 rounded-2xl border border-gold-200/70 bg-white/55 p-4 shadow-sm backdrop-blur-sm md:p-6">
+          <h2 className="mb-3 font-serif font-bold text-[#3a2540]">ギャラリー</h2>
+          <ImageGallery images={mag.images} />
         </section>
       )}
 

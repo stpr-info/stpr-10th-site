@@ -204,6 +204,8 @@ function toMagazine(r: Record<string, unknown>): Magazine {
     publisher: u(r.publisher as string | null),
     content: u(r.content as string | null),
     image: u(r.image as string | null),
+    images: strArr(r.images),
+    status: u(r.status as string | null),
     url: u(r.url as string | null),
   }
 }

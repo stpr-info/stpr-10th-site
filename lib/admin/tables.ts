@@ -40,7 +40,8 @@ export type Field = {
   label: string // 表示ラベル（日本語）
   type: FieldType
   required?: boolean
-  options?: string[] // select 用
+  options?: string[] // select 用（保存される値）
+  optionLabels?: Record<string, string> // select の表示ラベル（値→日本語表示）
   placeholder?: string
   help?: string
   itemFields?: SubField[] // repeater 用の行スキーマ
@@ -497,7 +498,15 @@ export const TABLES: Record<string, TableConfig> = {
       { name: "release_date", label: "発売日", type: "date" },
       { name: "publisher", label: "出版社", type: "text" },
       { name: "content", label: "内容", type: "textarea", placeholder: "表紙・巻頭特集 等" },
-      { name: "image", label: "画像", type: "image", help: "画像ファイルを選択するとアップロードして公開URLを自動入力します。" },
+      { name: "image", label: "表紙画像", type: "image", help: "画像ファイルを選択するとアップロードして公開URLを自動入力します。" },
+      { name: "images", label: "画像ギャラリー（複数）", type: "image", multiple: true },
+      {
+        name: "status",
+        label: "発売ステータス",
+        type: "select",
+        options: ["released", "upcoming"],
+        optionLabels: { released: "発売済み", upcoming: "発売予定" },
+      },
       { name: "url", label: "URL", type: "text" },
       { name: "sort_order", label: "並び順", type: "number" },
     ],
