@@ -1,35 +1,51 @@
 import Link from "next/link"
+import type { CSSProperties } from "react"
 import type { Album } from "@/data/albums"
 import { formatDateDot } from "@/lib/utils"
 import SafeImage from "@/components/common/SafeImage"
+import "@/components/group/strawberry-prince/strawberry-prince.css"
 
 const BASE = "/stpr-10th-anniversary"
 
-/** アルバム一覧のカード */
+const DATE_STYLE: CSSProperties = {
+  fontSize: 12,
+  fontWeight: 600,
+  color: "var(--sp-text-accent)",
+  letterSpacing: "0.02em",
+  fontVariantNumeric: "tabular-nums",
+}
+
+/** アルバム一覧のカード。EventCard・SongCard と同じ sp-card スタイル（角丸・ピンク枠・影・ホバー）。
+ *  theme-strawberry 配下が必要。 */
 export default function AlbumCard({ album }: { album: Album }) {
   return (
-    <Link
-      href={`${BASE}/album/${album.slug}`}
-      className="group flex flex-col overflow-hidden rounded-2xl border border-gold-200/70 bg-white/55 backdrop-blur-sm transition-all hover:-translate-y-1.5 hover:shadow-[0_12px_32px_rgba(212,168,83,0.22)]"
-    >
-      <div className="relative w-full overflow-hidden" style={{ aspectRatio: "1/1" }}>
-        <SafeImage
-          src={album.cover}
-          alt={album.title}
-          fill
-          fallbackLabel="ALBUM"
-          className="object-cover transition-transform duration-500 group-hover:scale-105"
-          sizes="(min-width: 768px) 25vw, 50vw"
-        />
-      </div>
-      <div className="flex flex-col gap-1 p-4">
-        <h3 className="line-clamp-2 font-serif text-sm font-bold leading-snug text-[#3a2540]">
+    <div className="theme-strawberry">
+      <Link
+        href={`${BASE}/album/${album.slug}`}
+        className="sp-card sp-shimmer-on-hover sp-sticker relative block group p-3"
+      >
+        <div className="relative aspect-square overflow-hidden rounded-xl bg-white/40">
+          <SafeImage
+            src={album.cover}
+            alt={album.title}
+            fill
+            fallbackLabel="ALBUM"
+            className="object-cover transition-transform duration-500 group-hover:scale-105"
+            sizes="(min-width: 768px) 25vw, 50vw"
+          />
+        </div>
+        <p
+          className="mt-3 line-clamp-2 text-sm font-bold leading-snug"
+          style={{ color: "var(--sp-text)" }}
+        >
           {album.title}
-        </h3>
+        </p>
         {album.releaseDate && (
-          <p className="text-xs text-[#9a8aa0]">{formatDateDot(album.releaseDate)}</p>
+          <p className="mt-1.5" style={DATE_STYLE}>
+            {formatDateDot(album.releaseDate)}
+          </p>
         )}
-      </div>
-    </Link>
+      </Link>
+    </div>
   )
 }

@@ -47,6 +47,7 @@ export default async function AlbumDetailPage({
     orderedTracks.map(async (t) => ({
       trackNumber: t.trackNumber,
       songSlug: t.songSlug ?? "",
+      youtubeUrl: t.youtubeUrl,
       song: t.songSlug ? await getSongBySlug(t.songSlug) : undefined,
     })),
   )
@@ -222,7 +223,7 @@ export default async function AlbumDetailPage({
                 <span className="text-xs font-normal text-[#9a8aa0]">{tracks.length}曲</span>
               </h2>
               <div className="space-y-1">
-                {tracks.map(({ trackNumber, songSlug, song }, i) => {
+                {tracks.map(({ trackNumber, songSlug, song, youtubeUrl }, i) => {
                   const num = trackNumber ?? i + 1
                   const inner = (
                     <>
@@ -234,17 +235,32 @@ export default async function AlbumDetailPage({
                       </span>
                     </>
                   )
-                  return song ? (
-                    <Link
-                      key={i}
-                      href={`${BASE}/music/${song.slug}`}
-                      className="flex items-center gap-3 rounded-xl p-2 transition-colors hover:bg-gold-50"
+                  const ytButton = youtubeUrl && (
+                    <a
+                      href={youtubeUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex shrink-0 items-center gap-1 rounded-full bg-[#ff0000] px-2.5 py-1 text-[11px] font-bold text-white transition-opacity hover:opacity-85"
                     >
-                      {inner}
-                    </Link>
-                  ) : (
-                    <div key={i} className="flex items-center gap-3 p-2">
-                      {inner}
+                      <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="currentColor" aria-hidden>
+                        <path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.6 12 3.6 12 3.6s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2 31 31 0 0 0 0 12a31 31 0 0 0 .5 5.8 3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1A31 31 0 0 0 24 12a31 31 0 0 0-.5-5.8ZM9.6 15.6V8.4l6.2 3.6-6.2 3.6Z" />
+                      </svg>
+                      YouTube
+                    </a>
+                  )
+                  return (
+                    <div key={i} className="flex items-center gap-2">
+                      {song ? (
+                        <Link
+                          href={`${BASE}/music/${song.slug}`}
+                          className="flex flex-1 items-center gap-3 rounded-xl p-2 transition-colors hover:bg-gold-50"
+                        >
+                          {inner}
+                        </Link>
+                      ) : (
+                        <div className="flex flex-1 items-center gap-3 p-2">{inner}</div>
+                      )}
+                      {ytButton}
                     </div>
                   )
                 })}
