@@ -14,17 +14,23 @@ export default async function TenthLayout({
 }: {
   children: React.ReactNode
 }) {
-  const [musicCount, albumCount] = await Promise.all([
+  const [musicCount, albumCount, visualCount] = await Promise.all([
     getCount("songs"),
     getCount("albums"),
+    getCount("visuals"),
   ])
+  const flags = {
+    hasMusic: musicCount > 0,
+    hasAlbum: albumCount > 0,
+    hasVisual: visualCount > 0,
+  }
 
   return (
     <div className="theme-10th theme-10th-bg flex min-h-screen flex-col font-serif">
-      <NavBar hasMusic={musicCount > 0} hasAlbum={albumCount > 0} />
+      <NavBar {...flags} />
       <main className="flex-1">{children}</main>
       <Footer />
-      <BottomNav hasMusic={musicCount > 0} hasAlbum={albumCount > 0} />
+      <BottomNav {...flags} />
     </div>
   )
 }

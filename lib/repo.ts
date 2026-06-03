@@ -33,6 +33,7 @@ import type { Song, SongType } from "@/data/songs"
 import type { Album, AlbumEdition, AlbumBonus, AlbumTrack } from "@/data/albums"
 import type { Magazine } from "@/data/magazines"
 import type { Media, MediaType } from "@/data/media"
+import type { Visual } from "@/data/visuals"
 
 // 読み取り用クライアント（モジュール内で 1 度だけ生成）。
 let _client: ReturnType<typeof createBrowserClient> | null = null
@@ -341,6 +342,28 @@ export async function getMagazineById(id: string): Promise<Magazine | undefined>
     .maybeSingle()
   if (error || !data) return undefined
   return toMagazine(data as Row)
+}
+
+// === ビジュアル ===
+function toVisual(r: Record<string, unknown>): Visual {
+  return {
+    id: String(r.id),
+    slug: u(r.slug as string | null),
+    title: u(r.title as string | null),
+    image: u(r.image as string | null),
+    releaseDate: u(r.release_date as string | null),
+    member: u(r.member as string | null),
+  }
+}
+
+export async function getVisuals(): Promise<Visual[]> {
+  const { data, error } = await read()
+    .from("visuals")
+    .select("*")
+    .order("release_date", { ascending: false, nullsFirst: false })
+    .order("created_at", { ascending: false })
+  if (error || !data) return []
+  return (data as Row[]).map(toVisual)
 }
 
 // === メディア ===

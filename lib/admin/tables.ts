@@ -479,6 +479,21 @@ export const TABLES: Record<string, TableConfig> = {
     ],
   },
 
+  visuals: {
+    key: "visuals",
+    label: "ビジュアル",
+    titleField: "title",
+    listColumns: ["title", "member", "release_date"],
+    fields: [
+      { name: "slug", label: "スラッグ（URL・任意）", type: "text" },
+      { name: "title", label: "タイトル", type: "text", required: true },
+      { name: "image", label: "画像", type: "image", help: "画像ファイルを選択するとアップロードして公開URLを自動入力します。" },
+      { name: "release_date", label: "公開日", type: "date" },
+      { name: "member", label: "メンバー", type: "text", placeholder: "全体 / 莉犬 等" },
+      { name: "sort_order", label: "並び順", type: "number" },
+    ],
+  },
+
   media: {
     key: "media",
     label: "メディア",

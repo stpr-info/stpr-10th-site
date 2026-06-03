@@ -13,9 +13,11 @@ const NAV_ITEMS: { label: string; segment: string }[] = [
   { label: "EVENT", segment: "event" },
   { label: "MUSIC", segment: "music" },
   { label: "ALBUM", segment: "album" },
+  { label: "VISUAL", segment: "visual" },
   { label: "MAGAZINE", segment: "magazine" },
   { label: "MEDIA", segment: "media" },
   { label: "MEMBERS", segment: "members" },
+  { label: "HISTORY", segment: "history" },
 ]
 
 /**
@@ -28,15 +30,18 @@ const NAV_ITEMS: { label: string; segment: string }[] = [
 export default function NavBar({
   hasMusic = true,
   hasAlbum = true,
+  hasVisual = true,
 }: {
   hasMusic?: boolean
   hasAlbum?: boolean
+  hasVisual?: boolean
 }) {
   const pathname = usePathname()
 
   const items = NAV_ITEMS.filter((item) => {
     if (item.segment === "music") return hasMusic
     if (item.segment === "album") return hasAlbum
+    if (item.segment === "visual") return hasVisual
     return true
   })
 

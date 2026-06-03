@@ -5,38 +5,44 @@ import { useEffect, useState } from "react"
 
 const BASE = "/stpr-10th-anniversary"
 
-// メニュー項目。id="" は TOP（ページ先頭）。
-const ITEMS: { label: string; id: string }[] = [
-  { label: "TOP", id: "" },
-  { label: "LIVE", id: "live" },
-  { label: "EVENT", id: "event" },
-  { label: "GOODS", id: "goods" },
-  { label: "MUSIC", id: "music" },
-  { label: "ALBUM", id: "album" },
-  { label: "MAGAZINE", id: "magazine" },
-  { label: "MEDIA", id: "media" },
+// メニュー項目。TOP/各セクションは同一ページのアンカー、VISUAL/HISTORY は専用ページ。
+type NavItem = { label: string; href: string; needs?: "music" | "album" | "visual" }
+const ITEMS: NavItem[] = [
+  { label: "TOP", href: BASE },
+  { label: "LIVE", href: `${BASE}#live` },
+  { label: "EVENT", href: `${BASE}#event` },
+  { label: "GOODS", href: `${BASE}#goods` },
+  { label: "MUSIC", href: `${BASE}#music`, needs: "music" },
+  { label: "ALBUM", href: `${BASE}#album`, needs: "album" },
+  { label: "VISUAL", href: `${BASE}/visual`, needs: "visual" },
+  { label: "MAGAZINE", href: `${BASE}#magazine` },
+  { label: "MEDIA", href: `${BASE}#media` },
+  { label: "HISTORY", href: `${BASE}/history` },
 ]
 
 /**
  * SP（スマホ）専用ナビ。
  * - 右下にハンバーガーボタンを固定表示
  * - タップで下からメニュー（ボトムシート）が出る
- * - 各項目タップで該当セクションへアンカースクロールし、メニューは閉じる
- * - MUSIC / ALBUM はデータがある場合のみ表示
+ * - 各項目タップで該当セクション/ページへ遷移し、メニューは閉じる
+ * - MUSIC / ALBUM / VISUAL はデータがある場合のみ表示
  * - md 以上では非表示（PC はヘッダーナビ）
  */
 export default function BottomNav({
   hasMusic,
   hasAlbum,
+  hasVisual,
 }: {
   hasMusic: boolean
   hasAlbum: boolean
+  hasVisual: boolean
 }) {
   const [open, setOpen] = useState(false)
 
   const items = ITEMS.filter((it) => {
-    if (it.id === "music") return hasMusic
-    if (it.id === "album") return hasAlbum
+    if (it.needs === "music") return hasMusic
+    if (it.needs === "album") return hasAlbum
+    if (it.needs === "visual") return hasVisual
     return true
   })
 
@@ -103,7 +109,7 @@ export default function BottomNav({
               {items.map((it) => (
                 <li key={it.label}>
                   <Link
-                    href={it.id ? `${BASE}#${it.id}` : BASE}
+                    href={it.href}
                     onClick={() => setOpen(false)}
                     className="block min-w-[92px] whitespace-nowrap rounded-xl border border-gold-300/70 bg-gradient-to-r from-rose-100 to-gold-100 px-4 py-3 text-center font-display text-xs tracking-[0.12em] text-gold-700 transition-colors active:from-rose-200 active:to-gold-200"
                   >

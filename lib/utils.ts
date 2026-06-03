@@ -3,7 +3,11 @@
 // メンバーは固定データのため data/members.ts を直接参照する。
 
 import { MEMBERS, type Member } from "@/data/members"
-import type { LiveStatus, Venue } from "@/data/lives"
+import type { Live, LiveStatus, Venue } from "@/data/lives"
+import type { Event } from "@/data/events"
+import type { Goods } from "@/data/goods"
+import type { Song } from "@/data/songs"
+import type { Album } from "@/data/albums"
 
 /**
  * ライブのステータスを日付から判定する。
@@ -165,4 +169,121 @@ export function formatVenueName(v: Venue): string {
 /** 会場配列を " / " 連結した一覧表示用文字列にする。 */
 export function venuesSummary(venues: Venue[]): string {
   return venues.map(formatVenueName).join(" / ")
+}
+
+// =========================================================================
+// HISTORY 年表（buildTimeline）
+//   lives / events / goods / songs / albums を年表アイテムへ集約する。
+// =========================================================================
+
+export type TimelineCategory = "live" | "event" | "goods" | "song" | "album"
+
+export type TimelineItem = {
+  date: string // YYYY-MM-DD
+  year: number
+  endDate?: string
+  category: TimelineCategory
+  title: string
+  description?: string
+  href: string
+}
+
+const TIMELINE_BASE = "/stpr-10th-anniversary"
+
+/** 各種日付文字列（ISO / 区切り / 和暦）を YYYY-MM-DD に正規化。失敗時 null。 */
+function normalizeTimelineDate(raw?: string): string | null {
+  if (!raw) return null
+  const s = String(raw).trim()
+  let m = s.match(/(\d{4})[/\-.](\d{1,2})[/\-.](\d{1,2})/)
+  if (m) return `${m[1]}-${m[2].padStart(2, "0")}-${m[3].padStart(2, "0")}`
+  m = s.match(/(\d{4})年\s*(\d{1,2})月\s*(\d{1,2})日/)
+  if (m) return `${m[1]}-${m[2].padStart(2, "0")}-${m[3].padStart(2, "0")}`
+  return null
+}
+
+/**
+ * lives / events / goods / songs / albums を年表アイテムへ集約する。
+ * - 日付は各データの代表日（live/event=periodStart, goods/album=releaseDate,
+ *   song=publishedDate）を正規化して使用。
+ * - 楽曲の「歌ってみた / COVER / カバー」は年表から除外。
+ * - 日付降順（同日はカテゴリ順）で返す。
+ */
+export function buildTimeline(opts: {
+  lives?: Live[]
+  events?: Event[]
+  goods?: Goods[]
+  songs?: Song[]
+  albums?: Album[]
+}): TimelineItem[] {
+  const out: TimelineItem[] = []
+
+  const push = (
+    raw: string | undefined,
+    base: Omit<TimelineItem, "date" | "year" | "endDate">,
+    rawEnd?: string,
+  ) => {
+    const date = normalizeTimelineDate(raw)
+    if (!date) return
+    const year = Number(date.slice(0, 4))
+    let endDate: string | undefined
+    if (rawEnd) {
+      const e = normalizeTimelineDate(rawEnd)
+      if (e && e !== date) endDate = e
+    }
+    out.push({ ...base, date, year, endDate })
+  }
+
+  for (const l of opts.lives ?? []) {
+    push(
+      l.periodStart,
+      { category: "live", title: l.title, description: l.description, href: `${TIMELINE_BASE}/live/${l.slug}` },
+      l.periodEnd,
+    )
+  }
+  for (const e of opts.events ?? []) {
+    push(
+      e.periodStart,
+      { category: "event", title: e.title, description: e.description, href: `${TIMELINE_BASE}/event/${e.slug}` },
+      e.periodEnd,
+    )
+  }
+  for (const g of opts.goods ?? []) {
+    push(g.releaseDate, {
+      category: "goods",
+      title: g.title,
+      description: g.description,
+      href: `${TIMELINE_BASE}/goods/${g.slug}`,
+    })
+  }
+  for (const s of opts.songs ?? []) {
+    const t = s.type?.trim()
+    if (t === "歌ってみた" || t === "COVER" || t === "カバー") continue
+    push(s.publishedDate, {
+      category: "song",
+      title: s.title,
+      description: s.artist,
+      href: `${TIMELINE_BASE}/music/${s.slug}`,
+    })
+  }
+  for (const a of opts.albums ?? []) {
+    push(a.releaseDate, {
+      category: "album",
+      title: a.title,
+      description: a.artist,
+      href: `${TIMELINE_BASE}/album/${a.slug}`,
+    })
+  }
+
+  const catOrder: Record<TimelineCategory, number> = {
+    live: 1,
+    event: 2,
+    album: 3,
+    song: 4,
+    goods: 5,
+  }
+  out.sort((a, b) => {
+    if (a.date !== b.date) return a.date < b.date ? 1 : -1
+    return catOrder[a.category] - catOrder[b.category]
+  })
+  return out
 }
