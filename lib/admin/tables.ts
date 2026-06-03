@@ -459,6 +459,7 @@ export const TABLES: Record<string, TableConfig> = {
         itemFields: [
           { name: "trackNumber", label: "トラック番号", type: "number" },
           { name: "songSlug", label: "楽曲slug", type: "text", placeholder: "song-slug" },
+          { name: "youtubeUrl", label: "YouTube URL", type: "text" },
         ],
       },
       {

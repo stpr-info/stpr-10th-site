@@ -20,6 +20,7 @@ export type AlbumBonus = {
 export type AlbumTrack = {
   trackNumber?: number
   songSlug?: string
+  youtubeUrl?: string
 }
 
 export type Album = {
