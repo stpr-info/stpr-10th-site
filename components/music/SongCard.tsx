@@ -56,8 +56,21 @@ export default function SongCard({
   return (
     <Link
       href={href}
-      className="group block overflow-hidden rounded-2xl border border-pink-200 bg-white p-3 shadow-md transition-all hover:-translate-y-1 hover:shadow-lg"
+      className="group relative block overflow-hidden rounded-2xl border border-pink-200 bg-white p-3 shadow-md transition-all hover:-translate-y-1 hover:shadow-lg"
     >
+      {/* 左側のピンク縦線（EventCard と同様） */}
+      <span
+        aria-hidden
+        className="absolute"
+        style={{
+          left: 4,
+          top: "18%",
+          bottom: "18%",
+          width: 3,
+          background: "rgba(245, 134, 164, 0.9)",
+          borderRadius: 2,
+        }}
+      />
       <div className="relative aspect-video overflow-hidden rounded-xl bg-gray-50">
         <SafeImage
           src={thumb}
