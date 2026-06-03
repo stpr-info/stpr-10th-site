@@ -43,6 +43,11 @@ export default async function MagazineListView({
               className="object-contain"
               sizes="(max-width: 640px) 45vw, (max-width: 1024px) 30vw, 22vw"
             />
+            {mag.status === "upcoming" && (
+              <span className="absolute left-2 top-2 rounded-full bg-rose-400 px-2 py-0.5 text-[10px] font-bold text-white shadow">
+                発売予定
+              </span>
+            )}
           </div>
           <h3 className="mt-2 line-clamp-2 font-serif text-sm font-bold leading-snug text-[#3a2540]">
             {mag.name}

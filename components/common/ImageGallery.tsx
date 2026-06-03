@@ -1,34 +1,35 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { createPortal } from "react-dom"
 
 /**
- * 画像を全部サムネイルで並べ、タップで画面いっぱいのライトボックス表示。
- * 背景タップ / × / Esc で閉じる。
+ * 画像を全部サムネイルで並べるギャラリー。
+ * - サムネは元画像のアスペクト比を維持（width:100% / height:auto）、masonry 風の段組み。
+ * - タップで画面いっぱいのライトボックス表示（クリックした画像が開く）。
+ * - ライトボックスは document.body へ Portal するため、backdrop-filter や
+ *   overflow-hidden を持つ祖先（アコーディオン等）に閉じ込められず全画面で開く。
+ * - × / 背景タップ / Esc で閉じる。
  */
 export default function ImageGallery({ images }: { images: string[] }) {
-  const [active, setActive] = useState<string | null>(null)
   const imgs = images.filter((s) => typeof s === "string" && s.length > 0)
+  const [active, setActive] = useState<string | null>(null)
 
   if (imgs.length === 0) return null
 
   return (
     <>
-      <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-6">
+      <div className="columns-2 gap-2 sm:columns-3 md:columns-4">
         {imgs.map((src, i) => (
           <button
             key={i}
             type="button"
             onClick={() => setActive(src)}
             aria-label={`画像 ${i + 1} を拡大`}
-            className="group relative aspect-square overflow-hidden rounded-lg border border-gold-200/70 bg-gold-50/40"
+            className="mb-2 block w-full break-inside-avoid overflow-hidden rounded-lg border border-gold-200/70 bg-gold-50/40"
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={src}
-              alt={`画像 ${i + 1}`}
-              className="h-full w-full object-cover transition-transform duration-200 group-hover:scale-105"
-            />
+            <img src={src} alt={`画像 ${i + 1}`} className="block h-auto w-full" />
           </button>
         ))}
       </div>
@@ -52,9 +53,10 @@ function Lightbox({ src, onClose }: { src: string; onClose: () => void }) {
     }
   }, [onClose])
 
-  return (
+  // Lightbox はクリック後（クライアント）にのみ描画されるため document は常に存在。
+  return createPortal(
     <div
-      className="fixed inset-0 z-[200] flex items-center justify-center bg-black/85 p-4"
+      className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/85 p-4"
       onClick={onClose}
       role="dialog"
       aria-modal="true"
@@ -75,6 +77,7 @@ function Lightbox({ src, onClose }: { src: string; onClose: () => void }) {
         className="max-h-[90vh] max-w-[95vw] rounded-lg object-contain"
         onClick={(e) => e.stopPropagation()}
       />
-    </div>
+    </div>,
+    document.body,
   )
 }

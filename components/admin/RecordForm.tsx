@@ -142,7 +142,7 @@ export default function RecordForm({
               >
                 {field.options?.map((opt) => (
                   <option key={opt} value={opt}>
-                    {opt}
+                    {field.optionLabels?.[opt] ?? opt}
                   </option>
                 ))}
               </select>

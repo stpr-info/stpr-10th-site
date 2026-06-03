@@ -8,6 +8,8 @@ export type Magazine = {
   publisher?: string
   content?: string // "表紙・巻頭特集" etc
   image?: string
+  images?: string[] // 画像ギャラリー（表紙以外の複数画像）
+  status?: string // "released" / "upcoming"
   url?: string
 }
 
