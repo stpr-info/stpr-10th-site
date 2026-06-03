@@ -52,20 +52,17 @@ export default function HeroSection() {
   return (
     <section
       className="relative isolate flex flex-col items-center justify-start overflow-hidden"
-      style={{
-        aspectRatio: "16 / 9",
-        background: "linear-gradient(160deg, #FDE8F4 0%, #EDE8FD 55%, #E8F4FD 100%)",
-      }}
+      style={{ aspectRatio: "16 / 9" }}
     >
-      {/* 背景画像（objectFit: contain・引き伸ばし禁止・余白はグラデが透ける） */}
+      {/* 背景画像（objectFit: cover・横幅いっぱい） */}
       <div className="absolute inset-0 -z-30">
         <Image
           src="/images/hero-bg.webp"
           alt=""
           fill
           style={{
-            objectFit: "contain",
-            objectPosition: "center top",
+            objectFit: "cover",
+            objectPosition: "center center",
             opacity: 1,
           }}
           priority
@@ -109,10 +106,10 @@ export default function HeroSection() {
         ))}
       </div>
 
-      {/* === 上部中央のコンテンツ（ロゴのみ・空に乗せるので影なし） === */}
+      {/* === 中央のコンテンツ（ロゴのみ・アーチ頂点付近に配置） === */}
       <div
         className="relative z-10 flex flex-col items-center px-6"
-        style={{ paddingTop: "40px" }}
+        style={{ paddingTop: "15%" }}
       >
         <div style={{ animation: "fadeUp 0.8s ease-out both" }}>
           <Image
@@ -122,10 +119,25 @@ export default function HeroSection() {
             height={200}
             priority
             className="h-auto"
-            style={{ width: "clamp(200px, 30vw, 280px)", height: "auto", objectFit: "contain" }}
+            style={{ width: "clamp(260px, 35vw, 360px)", height: "auto", objectFit: "contain" }}
           />
         </div>
       </div>
+
+      {/* 下部の白フェード（直後の白背景エリアとシームレスに繋ぐ） */}
+      <div
+        aria-hidden
+        style={{
+          position: "absolute",
+          bottom: 0,
+          left: 0,
+          right: 0,
+          height: "30%",
+          background: "linear-gradient(to bottom, transparent, rgba(255,248,251,0.95))",
+          zIndex: 5,
+          pointerEvents: "none",
+        }}
+      />
     </section>
   )
 }

@@ -5,6 +5,7 @@ import type { CSSProperties } from "react"
 import { Italianno } from "next/font/google"
 import type { Member } from "@/data/members"
 import { MiniHeart } from "@/components/group/strawberry-prince/StrawberryDecorations"
+import SafeImage from "@/components/common/SafeImage"
 import MemberCardModal from "./MemberCardModal"
 import "@/components/group/strawberry-prince/strawberry-prince.css"
 
@@ -49,17 +50,27 @@ export default function MemberCard({ member }: { member: Member }) {
       >
         {/* 内側をアクキー風（厚みのある透明層） */}
         <div className="sp-acrylic p-3">
-          <div className="aspect-square rounded overflow-hidden bg-white/40">
-            {member.visual10th ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={member.visual10th}
-                alt={member.name}
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-              />
-            ) : (
-              <div className="w-full h-full" />
-            )}
+          {/* カード表面：10周年ビジュアル */}
+          <div className="relative aspect-square overflow-hidden rounded bg-white/40">
+            <SafeImage
+              src={member.visual10th}
+              alt={`${member.name} 10周年ビジュアル`}
+              fill
+              fallbackLabel={member.nameEn}
+              sizes="(max-width: 768px) 45vw, 160px"
+              className="object-cover transition-transform group-hover:scale-105"
+            />
+          </div>
+          {/* 丸く切り抜いたアイコン（ビジュアル下端に重ねる） */}
+          <div className="relative z-10 mx-auto -mt-6 h-12 w-12 overflow-hidden rounded-full border-2 border-white bg-white/60 shadow-md">
+            <SafeImage
+              src={member.icon}
+              alt={`${member.name} アイコン`}
+              fill
+              fallbackLabel={member.nameEn}
+              sizes="48px"
+              className="object-cover"
+            />
           </div>
           <div className="text-center mt-2">
             <p
