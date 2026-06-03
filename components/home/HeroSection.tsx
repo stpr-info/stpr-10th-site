@@ -107,6 +107,21 @@ export default function HeroSection() {
         }}
       />
 
+      {/* 背景画像レイヤー（グラデーションの上・他の装飾の下に挟む） */}
+      <div className="-z-[25]" style={{ position: "absolute", inset: 0 }}>
+        <Image
+          src="/images/hero-bg.webp"
+          alt=""
+          fill
+          style={{
+            objectFit: "cover",
+            objectPosition: "center top",
+            opacity: 0.18,
+          }}
+          priority
+        />
+      </div>
+
       {/* Layer2: うっすら時計塔シルエット（静止・中央背面） */}
       <svg
         viewBox="0 0 200 200"
