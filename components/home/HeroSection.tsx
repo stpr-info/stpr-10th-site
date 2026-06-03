@@ -14,59 +14,80 @@ const PETALS = [
   { left: "95%", delay: "3.5s", duration: "16s", size: 10 },
 ]
 
-// 星のきらめき配置（20個・決定的座標）。
+// 小さな星（✦）20個。サイズ4〜10px / opacity 0.3〜0.6 / twinkle。
+// 決定的座標でハイドレーション不一致を回避。
 const STARS = [
-  { top: "9%", left: "11%", delay: "0s", r: 2.5 },
-  { top: "14%", left: "78%", delay: "0.6s", r: 3 },
-  { top: "21%", left: "30%", delay: "1.2s", r: 2 },
-  { top: "12%", left: "55%", delay: "0.9s", r: 2.4 },
-  { top: "27%", left: "88%", delay: "1.6s", r: 2 },
-  { top: "33%", left: "8%", delay: "0.3s", r: 3 },
-  { top: "38%", left: "64%", delay: "2s", r: 2.2 },
-  { top: "44%", left: "20%", delay: "1.1s", r: 2.6 },
-  { top: "18%", left: "42%", delay: "2.4s", r: 1.8 },
-  { top: "52%", left: "82%", delay: "0.5s", r: 2.3 },
-  { top: "58%", left: "14%", delay: "1.8s", r: 2.7 },
-  { top: "63%", left: "48%", delay: "0.8s", r: 2 },
-  { top: "69%", left: "73%", delay: "2.2s", r: 2.4 },
-  { top: "74%", left: "26%", delay: "1.4s", r: 2 },
-  { top: "78%", left: "90%", delay: "0.2s", r: 2.6 },
-  { top: "83%", left: "6%", delay: "1.9s", r: 2.2 },
-  { top: "86%", left: "58%", delay: "0.7s", r: 2.8 },
-  { top: "90%", left: "37%", delay: "1.3s", r: 2 },
-  { top: "47%", left: "95%", delay: "2.6s", r: 1.8 },
-  { top: "55%", left: "38%", delay: "1s", r: 2.3 },
+  { top: 8, left: 12, size: 8, opacity: 0.5, delay: 0 },
+  { top: 14, left: 78, size: 6, opacity: 0.45, delay: 0.6 },
+  { top: 21, left: 30, size: 5, opacity: 0.4, delay: 1.2 },
+  { top: 11, left: 55, size: 7, opacity: 0.55, delay: 0.9 },
+  { top: 27, left: 88, size: 4, opacity: 0.35, delay: 1.6 },
+  { top: 33, left: 8, size: 9, opacity: 0.5, delay: 0.3 },
+  { top: 38, left: 64, size: 5, opacity: 0.4, delay: 2.0 },
+  { top: 44, left: 20, size: 7, opacity: 0.5, delay: 1.1 },
+  { top: 18, left: 42, size: 4, opacity: 0.3, delay: 2.4 },
+  { top: 52, left: 82, size: 6, opacity: 0.45, delay: 0.5 },
+  { top: 58, left: 14, size: 8, opacity: 0.55, delay: 1.8 },
+  { top: 63, left: 48, size: 5, opacity: 0.4, delay: 0.8 },
+  { top: 69, left: 73, size: 6, opacity: 0.5, delay: 2.2 },
+  { top: 74, left: 26, size: 5, opacity: 0.4, delay: 1.4 },
+  { top: 78, left: 90, size: 7, opacity: 0.5, delay: 0.2 },
+  { top: 83, left: 6, size: 6, opacity: 0.45, delay: 1.9 },
+  { top: 86, left: 58, size: 10, opacity: 0.6, delay: 0.7 },
+  { top: 90, left: 37, size: 5, opacity: 0.4, delay: 1.3 },
+  { top: 47, left: 95, size: 4, opacity: 0.3, delay: 2.6 },
+  { top: 55, left: 38, size: 6, opacity: 0.45, delay: 1.0 },
 ]
 
-// アーチ上部に散らすバラのドット（左右7輪ずつ・決定的座標）。
-// メンバーカラー6色を順に割り当て、x座標は左右対称気味に。
-const ARCH_FLOWERS = [
-  // 左側の柱〜アーチ肩
-  { cx: 60, cy: 200 },
-  { cx: 70, cy: 150 },
-  { cx: 95, cy: 110 },
-  { cx: 140, cy: 75 },
-  { cx: 210, cy: 52 },
-  { cx: 300, cy: 42 },
-  { cx: 400, cy: 40 },
-  // 中央〜右側の肩〜柱
-  { cx: 800, cy: 40 },
-  { cx: 900, cy: 42 },
-  { cx: 990, cy: 52 },
-  { cx: 1060, cy: 75 },
-  { cx: 1105, cy: 110 },
-  { cx: 1130, cy: 150 },
-  { cx: 1140, cy: 200 },
+// 小さな宝石（ひし形）6個。サイズ8〜12px / メンバーカラー / opacity 0.25。
+const GEMS = [
+  { top: 20, left: 24, size: 10, color: 0 },
+  { top: 35, left: 70, size: 8, color: 2 },
+  { top: 50, left: 10, size: 12, color: 3 },
+  { top: 62, left: 60, size: 9, color: 4 },
+  { top: 30, left: 50, size: 8, color: 5 },
+  { top: 72, left: 84, size: 11, color: 1 },
 ]
+
+// 背景にうっすら描く花のアーチの、左右の柱に配るバラ（円の集合で表現）。
+const FAINT_ROSES = [
+  { cx: 150, cy: 300, s: 26 },
+  { cx: 138, cy: 415, s: 30 },
+  { cx: 162, cy: 525, s: 24 },
+  { cx: 1050, cy: 300, s: 26 },
+  { cx: 1062, cy: 415, s: 30 },
+  { cx: 1038, cy: 525, s: 24 },
+]
+
+// ✦ 4方向星のポリゴン頂点（viewBox 0 0 24 24）。
+const STAR_POINTS = "12,2 13.6,10.4 22,12 13.6,13.6 12,22 10.4,13.6 2,12 10.4,10.4"
+// ひし形（宝石）のポリゴン頂点（viewBox 0 0 24 24）。
+const GEM_POINTS = "12,1 21,11 12,23 3,11"
+
+// 円の集合で1輪のバラを描く（中心 + 周囲5枚の花びら）。
+function Rose({ cx, cy, s }: { cx: number; cy: number; s: number }) {
+  const petals = [0, 1, 2, 3, 4].map((i) => {
+    const a = (i * 72 - 90) * (Math.PI / 180)
+    return { x: cx + Math.cos(a) * s * 0.5, y: cy + Math.sin(a) * s * 0.5 }
+  })
+  return (
+    <g fill="#F472B6">
+      {petals.map((p, i) => (
+        <circle key={i} cx={p.x} cy={p.y} r={s * 0.42} />
+      ))}
+      <circle cx={cx} cy={cy} r={s * 0.5} />
+    </g>
+  )
+}
 
 /**
  * トップの HERO。
  * - Layer1: ピンク→ラベンダー→スカイのグラデーション背景
  * - Layer2: うっすら時計塔シルエット（静止・opacity 0.08）
- * - Layer3: 花のアーチ（柱ライン + バラのドット）
+ * - Layer3: ごく薄い花のアーチ（左下→上部中央→右下・opacity 0.06）
  * - 主役: 10周年ロゴ（next/image）
  * - 期間テキスト / キャッチコピー / スクロール誘導
- * - 花びらパーティクル / 星のきらめき（CSS アニメーション）
+ * - 花びらパーティクル / 小さな星(✦) / 宝石(ひし形)（CSS アニメーション）
  *
  * 時計（HeroClock）は廃止。アニメーションは fadeUp / twinkle / floatPetal /
  * scrollLine のみで、激しい常時回転系は使わない。
@@ -124,32 +145,24 @@ export default function HeroSection() {
         <circle cx="100" cy="100" r="5" fill="currentColor" />
       </svg>
 
-      {/* Layer3: 花のアーチ（柱ライン + バラのドット） */}
+      {/* Layer3: ごく薄い花のアーチ（左下→上部中央→右下 + 柱のバラ） */}
       <svg
-        viewBox="0 0 1200 400"
-        preserveAspectRatio="xMidYMin slice"
+        viewBox="0 0 1200 600"
+        preserveAspectRatio="xMidYMid slice"
         aria-hidden
-        className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-full w-full"
-        style={{ opacity: 0.35 }}
+        className="pointer-events-none absolute inset-0 -z-10 h-full w-full"
+        style={{ opacity: 0.06 }}
       >
-        {/* 左右の柱 + アーチ曲線 */}
         <path
-          d="M60 400 V170 Q60 60 250 50 Q600 30 950 50 Q1140 60 1140 170 V400"
+          d="M150 600 C 150 220 360 90 600 90 C 840 90 1050 220 1050 600"
           fill="none"
-          stroke={T.goldL}
+          stroke="#F472B6"
           strokeWidth="4"
           strokeLinecap="round"
         />
-        {/* アーチ上部のバラ（メンバーカラー6色を循環） */}
-        {ARCH_FLOWERS.map((f, i) => {
-          const color = MEMBER_COLORS[i % MEMBER_COLORS.length]
-          return (
-            <g key={i}>
-              <circle cx={f.cx} cy={f.cy} r="12" fill={color} opacity="0.7" />
-              <circle cx={f.cx} cy={f.cy} r="5" fill={T.goldL} />
-            </g>
-          )
-        })}
+        {FAINT_ROSES.map((r, i) => (
+          <Rose key={i} cx={r.cx} cy={r.cy} s={r.s} />
+        ))}
       </svg>
 
       {/* 花びらパーティクル（HERO 内に閉じ込め・absolute） */}
@@ -169,19 +182,36 @@ export default function HeroSection() {
         ))}
       </div>
 
-      {/* 星のきらめき */}
-      <svg className="pointer-events-none absolute inset-0 -z-[5] h-full w-full" aria-hidden>
+      {/* 小さな星(✦) + 宝石(ひし形) */}
+      <div className="pointer-events-none absolute inset-0 -z-[5] overflow-hidden" aria-hidden>
         {STARS.map((s, i) => (
-          <circle
-            key={i}
-            cx={s.left}
-            cy={s.top}
-            r={s.r}
-            fill="#FFFDF7"
-            style={{ animation: `twinkle 3s ease-in-out ${s.delay} infinite` }}
-          />
+          <span
+            key={`star-${i}`}
+            className="absolute"
+            style={{ top: `${s.top}%`, left: `${s.left}%`, opacity: s.opacity }}
+          >
+            <svg
+              width={s.size}
+              height={s.size}
+              viewBox="0 0 24 24"
+              style={{ display: "block", animation: `twinkle 3s ease-in-out ${s.delay}s infinite` }}
+            >
+              <polygon points={STAR_POINTS} fill="#FFFDF7" />
+            </svg>
+          </span>
         ))}
-      </svg>
+        {GEMS.map((g, i) => (
+          <span
+            key={`gem-${i}`}
+            className="absolute"
+            style={{ top: `${g.top}%`, left: `${g.left}%`, opacity: 0.25 }}
+          >
+            <svg width={g.size} height={g.size} viewBox="0 0 24 24" style={{ display: "block" }}>
+              <polygon points={GEM_POINTS} fill={MEMBER_COLORS[g.color]} />
+            </svg>
+          </span>
+        ))}
+      </div>
 
       {/* === 中央コンテンツ === */}
       <div className="relative z-10 flex flex-col items-center px-6 py-24 text-center sm:py-28">
@@ -193,8 +223,8 @@ export default function HeroSection() {
             width={360}
             height={200}
             priority
-            className="h-auto w-[240px] sm:w-[360px]"
-            style={{ objectFit: "contain" }}
+            className="h-auto"
+            style={{ width: "clamp(240px, 40vw, 320px)", height: "auto", objectFit: "contain" }}
           />
         </div>
 
