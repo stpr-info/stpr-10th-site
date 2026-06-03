@@ -182,7 +182,7 @@ export default async function TopPage() {
       {/* 7. PROJECT（最新3件 + もっと見る・0件なら非表示） */}
       {projects.length > 0 && (
         <Section id="project" subtitle="PROJECT" title="企画" tone="pearl">
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="theme-strawberry grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {latestProjects.map((p) => (
               <LinkCard
                 key={p.slug}
@@ -203,7 +203,7 @@ export default async function TopPage() {
       {/* 8. MOVIE（最新3件 + もっと見る・0件なら非表示） */}
       {movies.length > 0 && (
         <Section id="movie" subtitle="MOVIE" title="動画" tone="white">
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="theme-strawberry grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {latestMovies.map((m) => (
               <LinkCard
                 key={m.id}
@@ -239,7 +239,7 @@ export default async function TopPage() {
       {/* 11. STREAM（最新3件 + もっと見る・0件なら非表示） */}
       {streams.length > 0 && (
         <Section id="stream" subtitle="STREAM" title="配信" tone="pearl">
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="theme-strawberry grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {latestStreams.map((s) => (
               <LinkCard
                 key={s.id}
