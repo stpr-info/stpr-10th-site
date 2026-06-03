@@ -7,8 +7,8 @@ import EmptyState from "@/components/common/EmptyState"
 
 /** 雑誌一覧（カード形式・詳細ページなし）。
  *  magazines 未指定時は自身で取得（既存の /magazine ページ互換）。
- *  SP は 2 列グリッド（画像 + 雑誌名/号数 + 発売日のみ）、
- *  sm 以上は従来の横並びリスト（説明文あり）。 */
+ *  レスポンシブな表紙グリッド（SP2 / sm3 / lg4 列）。表紙はアスペクト比保持
+ *  （object-contain）で表示し、説明文は表示しない。 */
 export default async function MagazineListView({
   magazines: magazinesProp,
 }: {
@@ -39,79 +39,38 @@ export default async function MagazineListView({
     )
 
   return (
-    <>
-      {/* SP: 2 列グリッド（画像 + 雑誌名/号数 + 発売日のみ・説明文なし） */}
-      <div className="grid grid-cols-2 gap-3 sm:hidden">
-        {magazines.map((mag) =>
-          wrap(
-            mag,
-            "group flex flex-col rounded-2xl border border-gold-200/70 bg-white/55 p-2 backdrop-blur-sm transition-transform active:scale-95",
-            <>
-              <div
-                className="relative w-full overflow-hidden rounded-lg"
-                style={{ aspectRatio: "3/4" }}
-              >
-                <SafeImage
-                  src={mag.image}
-                  alt={mag.name}
-                  fill
-                  fallbackLabel="MAG"
-                  className="object-cover"
-                  sizes="45vw"
-                />
-              </div>
-              <h3 className="mt-2 line-clamp-2 font-serif text-xs font-bold leading-snug text-[#3a2540]">
-                {mag.name}
-              </h3>
-              <p className="text-[11px] text-[#6a5570]">{mag.issue}</p>
-              {mag.releaseDate && (
-                <p className="mt-0.5 text-[10px] text-[#9a8aa0]">
-                  発売: {formatDateDot(mag.releaseDate)}
-                </p>
-              )}
-            </>,
-          ),
-        )}
-      </div>
-
-      {/* sm 以上: 従来の横並びリスト（説明文あり） */}
-      <div className="hidden gap-4 sm:grid sm:grid-cols-2">
-        {magazines.map((mag) =>
-          wrap(
-            mag,
-            "group flex gap-4 rounded-2xl border border-gold-200/70 bg-white/55 p-3 backdrop-blur-sm transition-all hover:-translate-y-1 hover:shadow-[0_12px_32px_rgba(212,168,83,0.22)]",
-            <>
-              <div
-                className="relative shrink-0 overflow-hidden rounded-lg"
-                style={{ width: 80, aspectRatio: "3/4" }}
-              >
-                <SafeImage
-                  src={mag.image}
-                  alt={mag.name}
-                  fill
-                  fallbackLabel="MAG"
-                  className="object-cover"
-                  sizes="80px"
-                />
-              </div>
-              <div className="flex flex-1 flex-col gap-1 py-1">
-                <h3 className="font-serif text-sm font-bold leading-snug text-[#3a2540]">
-                  {mag.name}
-                </h3>
-                <p className="text-xs text-[#6a5570]">{mag.issue}</p>
-                {mag.content && (
-                  <p className="text-xs text-[#9a8aa0]">{mag.content}</p>
-                )}
-                {mag.releaseDate && (
-                  <p className="mt-auto text-[11px] text-[#9a8aa0]">
-                    発売: {formatDateDot(mag.releaseDate)}
-                  </p>
-                )}
-              </div>
-            </>,
-          ),
-        )}
-      </div>
-    </>
+    <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+      {magazines.map((mag) =>
+        wrap(
+          mag,
+          "group flex flex-col rounded-2xl border border-gold-200/70 bg-white/55 p-3 backdrop-blur-sm transition-all hover:-translate-y-1 hover:shadow-[0_12px_32px_rgba(212,168,83,0.22)]",
+          <>
+            {/* 表紙：アスペクト比を保持（contain）。潰れ・小さすぎを防ぐ。 */}
+            <div
+              className="relative w-full overflow-hidden rounded-lg bg-gold-50/40"
+              style={{ aspectRatio: "3 / 4" }}
+            >
+              <SafeImage
+                src={mag.image}
+                alt={mag.name}
+                fill
+                fallbackLabel="MAG"
+                className="object-contain"
+                sizes="(max-width: 640px) 45vw, (max-width: 1024px) 30vw, 22vw"
+              />
+            </div>
+            <h3 className="mt-2 line-clamp-2 font-serif text-sm font-bold leading-snug text-[#3a2540]">
+              {mag.name}
+            </h3>
+            <p className="text-xs text-[#6a5570]">{mag.issue}</p>
+            {mag.releaseDate && (
+              <p className="mt-0.5 text-[11px] text-[#9a8aa0]">
+                発売: {formatDateDot(mag.releaseDate)}
+              </p>
+            )}
+          </>,
+        ),
+      )}
+    </div>
   )
 }

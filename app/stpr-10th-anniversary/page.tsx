@@ -2,13 +2,15 @@ import HeroSection from "@/components/home/HeroSection"
 import CategoryGrid from "@/components/home/CategoryGrid"
 import Section from "@/components/common/Section"
 import MemberCard from "@/components/members/MemberCard"
-import LiveListView from "@/components/live/LiveListView"
-import EventListView from "@/components/event/EventListView"
-import GoodsListView from "@/components/goods/GoodsListView"
+import LiveCard from "@/components/live/LiveCard"
+import EventCard from "@/components/event/EventCard"
+import GoodsCard from "@/components/goods/GoodsCard"
 import MusicListView from "@/components/music/MusicListView"
 import AlbumListView from "@/components/album/AlbumListView"
 import MagazineListView from "@/components/magazine/MagazineListView"
 import MediaListView from "@/components/media/MediaListView"
+import EmptyState from "@/components/common/EmptyState"
+import MoreLink from "@/components/common/MoreLink"
 import { MEMBERS } from "@/data/members"
 import {
   getLives,
@@ -21,8 +23,15 @@ import {
 } from "@/lib/repo"
 import { T } from "@/lib/theme"
 
+const BASE = "/stpr-10th-anniversary"
+
 // 管理画面の編集が即時反映されるよう常に動的レンダリング。
 export const dynamic = "force-dynamic"
+
+// 日付文字列の降順比較（新しい順）。空は末尾。
+function byDateDesc(a?: string, b?: string): number {
+  return (b ?? "").localeCompare(a ?? "")
+}
 
 /**
  * 10周年特設サイト TOP（完全版）。
@@ -41,6 +50,11 @@ export default async function TopPage() {
     getMagazines(),
     getMedia(),
   ])
+
+  // TOP は各カテゴリの最新数件だけを見せ、残りは「もっと見る」で全件ページへ。
+  const latestLives = [...lives].sort((a, b) => byDateDesc(a.periodStart, b.periodStart)).slice(0, 1)
+  const latestEvents = [...events].sort((a, b) => byDateDesc(a.periodStart, b.periodStart)).slice(0, 3)
+  const latestGoods = [...goods].sort((a, b) => byDateDesc(a.releaseDate, b.releaseDate)).slice(0, 1)
 
   return (
     <div>
@@ -95,19 +109,52 @@ export default async function TopPage() {
         </div>
       </Section>
 
-      {/* 5. LIVE */}
+      {/* 5. LIVE（最新1件 + もっと見る） */}
       <Section id="live" subtitle="LIVE" title="ライブ" tone="pearl">
-        <LiveListView lives={lives} showControls={false} />
+        {lives.length === 0 ? (
+          <EmptyState label="ライブ情報を準備中です" />
+        ) : (
+          <div className="theme-strawberry">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:gap-4 lg:grid-cols-3">
+              {latestLives.map((l, i) => (
+                <LiveCard key={l.slug} live={l} index={i} />
+              ))}
+            </div>
+            {lives.length > latestLives.length && <MoreLink href={`${BASE}/live`} />}
+          </div>
+        )}
       </Section>
 
-      {/* 6. EVENT */}
+      {/* 6. EVENT（種別で分けず最新3件をまとめて表示 + もっと見る） */}
       <Section id="event" subtitle="EVENT" title="イベント" tone="white">
-        <EventListView events={events} showControls={false} />
+        {events.length === 0 ? (
+          <EmptyState label="イベント情報を準備中です" />
+        ) : (
+          <div className="theme-strawberry">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:gap-4 lg:grid-cols-3">
+              {latestEvents.map((e, i) => (
+                <EventCard key={e.slug} event={e} index={i} />
+              ))}
+            </div>
+            {events.length > latestEvents.length && <MoreLink href={`${BASE}/event`} />}
+          </div>
+        )}
       </Section>
 
-      {/* 7. GOODS */}
+      {/* 7. GOODS（最新1件 + もっと見る） */}
       <Section id="goods" subtitle="GOODS" title="グッズ" tone="pearl">
-        <GoodsListView goods={goods} showControls={false} />
+        {goods.length === 0 ? (
+          <EmptyState label="グッズ情報を準備中です" />
+        ) : (
+          <div className="theme-strawberry">
+            <div className="grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-4">
+              {latestGoods.map((g, i) => (
+                <GoodsCard key={g.slug} goods={g} index={i} />
+              ))}
+            </div>
+            {goods.length > latestGoods.length && <MoreLink href={`${BASE}/goods`} />}
+          </div>
+        )}
       </Section>
 
       {/* 8. MUSIC */}
