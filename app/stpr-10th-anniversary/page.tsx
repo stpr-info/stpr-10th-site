@@ -86,7 +86,7 @@ export default async function TopPage() {
       {/* 4. MEMBERS */}
       <Section id="members" subtitle="MEMBERS" title="メンバー" tone="white">
         <div
-          className="theme-strawberry mx-auto grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-6 md:gap-4"
+          className="theme-strawberry mx-auto grid grid-cols-3 gap-3 md:grid-cols-6 md:gap-4"
           style={{ maxWidth: "960px" }}
         >
           {MEMBERS.map((m) => (
