@@ -333,6 +333,16 @@ export async function getMagazines(): Promise<Magazine[]> {
   return (data as Row[]).map(toMagazine)
 }
 
+export async function getMagazineById(id: string): Promise<Magazine | undefined> {
+  const { data, error } = await read()
+    .from("magazines")
+    .select("*")
+    .eq("id", id)
+    .maybeSingle()
+  if (error || !data) return undefined
+  return toMagazine(data as Row)
+}
+
 // === メディア ===
 export async function getMedia(): Promise<Media[]> {
   const { data, error } = await read()

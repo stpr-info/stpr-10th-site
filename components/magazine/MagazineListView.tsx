@@ -1,10 +1,13 @@
+import Link from "next/link"
 import type { Magazine } from "@/data/magazines"
 import { getMagazines } from "@/lib/repo"
 import { formatDateDot } from "@/lib/utils"
 import SafeImage from "@/components/common/SafeImage"
 import EmptyState from "@/components/common/EmptyState"
 
-/** 雑誌一覧（カード形式・詳細ページなし）。
+const BASE = "/stpr-10th-anniversary"
+
+/** 雑誌一覧（カード形式）。各カードは雑誌詳細ページ（/magazine/{id}）へリンク。
  *  magazines 未指定時は自身で取得（既存の /magazine ページ互換）。
  *  レスポンシブな表紙グリッド（SP2 / sm3 / lg4 列）。表紙はアスペクト比保持
  *  （object-contain）で表示し、説明文は表示しない。 */
@@ -19,13 +22,13 @@ export default async function MagazineListView({
     return <EmptyState label="雑誌情報を準備中です" />
   }
 
-  // 雑誌に詳細ページは無いため、カードはリンクにしない（不正な URL による 404 を防止）。
   return (
     <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
       {magazines.map((mag) => (
-        <div
+        <Link
           key={mag.id}
-          className="flex flex-col rounded-2xl border border-gold-200/70 bg-white/55 p-3 backdrop-blur-sm"
+          href={`${BASE}/magazine/${mag.id}`}
+          className="group flex flex-col rounded-2xl border border-gold-200/70 bg-white/55 p-3 no-underline backdrop-blur-sm transition-all hover:-translate-y-1 hover:shadow-[0_12px_32px_rgba(212,168,83,0.22)]"
         >
           {/* 表紙：アスペクト比を保持（contain）。潰れ・小さすぎを防ぐ。 */}
           <div
@@ -50,7 +53,7 @@ export default async function MagazineListView({
               発売: {formatDateDot(mag.releaseDate)}
             </p>
           )}
-        </div>
+        </Link>
       ))}
     </div>
   )
