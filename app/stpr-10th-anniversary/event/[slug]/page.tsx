@@ -78,13 +78,13 @@ export default async function EventDetailPage({
       {/* HERO：キービジュアル・ステータス・タイトル・期間・説明 */}
       <div className="mb-6 overflow-hidden rounded-2xl border border-gold-200/70 bg-white/55 backdrop-blur-sm">
         {event.keyVisual && (
-          <div className="relative aspect-[16/9] w-full">
+          <div className="relative aspect-[16/9] w-full bg-gold-50/40">
             <SafeImage
               src={event.keyVisual}
               alt={event.title}
               fill
               fallbackLabel="EVENT"
-              className="object-cover"
+              className="object-contain"
               sizes="(min-width: 768px) 1152px, 100vw"
               priority
             />

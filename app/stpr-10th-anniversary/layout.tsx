@@ -20,7 +20,7 @@ export default async function TenthLayout({
   ])
 
   return (
-    <div className="theme-10th theme-10th-bg flex min-h-screen flex-col font-serif pb-16 md:pb-0">
+    <div className="theme-10th theme-10th-bg flex min-h-screen flex-col font-serif">
       <NavBar />
       <main className="flex-1">{children}</main>
       <Footer />

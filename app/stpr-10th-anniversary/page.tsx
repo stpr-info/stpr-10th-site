@@ -1,6 +1,7 @@
 import HeroSection from "@/components/home/HeroSection"
 import CategoryGrid from "@/components/home/CategoryGrid"
 import Section from "@/components/common/Section"
+import SectionHeading from "@/components/common/SectionHeading"
 import MemberCard from "@/components/members/MemberCard"
 import LiveCard from "@/components/live/LiveCard"
 import EventCard from "@/components/event/EventCard"
@@ -115,21 +116,40 @@ export default async function TopPage() {
         </div>
       </Section>
 
-      {/* 5. LIVE（最新1件 + もっと見る） */}
-      <Section id="live" subtitle="LIVE" title="ライブ" tone="pearl">
-        {lives.length === 0 ? (
-          <EmptyState label="ライブ情報を準備中です" />
-        ) : (
-          <div className="theme-strawberry">
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:gap-4 lg:grid-cols-3">
-              {latestLives.map((l, i) => (
-                <LiveCard key={l.slug} live={l} index={i} />
-              ))}
-            </div>
-            {lives.length > latestLives.length && <MoreLink href={`${BASE}/live`} />}
+      {/* 5. LIVE / GOODS（PC は横並び・SP は縦並び。各々独立した見出し） */}
+      <section className="px-4 py-8 sm:px-5 sm:py-10" style={{ background: T.pearl }}>
+        <div className="mx-auto grid max-w-[1200px] grid-cols-1 gap-10 md:grid-cols-2">
+          {/* LIVE（最新1件 + もっと見る） */}
+          <div id="live" className="md:scroll-mt-[72px]">
+            <SectionHeading subtitle="LIVE" title="ライブ" className="mb-5 sm:mb-8" />
+            {lives.length === 0 ? (
+              <EmptyState label="ライブ情報を準備中です" />
+            ) : (
+              <div className="theme-strawberry">
+                {latestLives.map((l, i) => (
+                  <LiveCard key={l.slug} live={l} index={i} />
+                ))}
+                {lives.length > latestLives.length && <MoreLink href={`${BASE}/live`} />}
+              </div>
+            )}
           </div>
-        )}
-      </Section>
+
+          {/* GOODS（最新1件 + もっと見る） */}
+          <div id="goods" className="md:scroll-mt-[72px]">
+            <SectionHeading subtitle="GOODS" title="グッズ" className="mb-5 sm:mb-8" />
+            {goods.length === 0 ? (
+              <EmptyState label="グッズ情報を準備中です" />
+            ) : (
+              <div className="theme-strawberry">
+                {latestGoods.map((g, i) => (
+                  <GoodsCard key={g.slug} goods={g} index={i} />
+                ))}
+                {goods.length > latestGoods.length && <MoreLink href={`${BASE}/goods`} />}
+              </div>
+            )}
+          </div>
+        </div>
+      </section>
 
       {/* 6. EVENT（種別で分けず最新3件をまとめて表示 + もっと見る） */}
       <Section id="event" subtitle="EVENT" title="イベント" tone="white">
@@ -143,22 +163,6 @@ export default async function TopPage() {
               ))}
             </div>
             {events.length > latestEvents.length && <MoreLink href={`${BASE}/event`} />}
-          </div>
-        )}
-      </Section>
-
-      {/* 7. GOODS（最新1件 + もっと見る） */}
-      <Section id="goods" subtitle="GOODS" title="グッズ" tone="pearl">
-        {goods.length === 0 ? (
-          <EmptyState label="グッズ情報を準備中です" />
-        ) : (
-          <div className="theme-strawberry">
-            <div className="grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-4">
-              {latestGoods.map((g, i) => (
-                <GoodsCard key={g.slug} goods={g} index={i} />
-              ))}
-            </div>
-            {goods.length > latestGoods.length && <MoreLink href={`${BASE}/goods`} />}
           </div>
         )}
       </Section>
@@ -182,9 +186,10 @@ export default async function TopPage() {
         <MagazineListView magazines={magazines} />
       </Section>
 
-      {/* 11. MEDIA */}
+      {/* 11. MEDIA（最新5件 + もっと見る） */}
       <Section id="media" subtitle="MEDIA" title="メディア" tone="pearl">
-        <MediaListView media={media} showControls={false} />
+        <MediaListView media={media.slice(0, 5)} showControls={false} />
+        {media.length > 5 && <MoreLink href={`${BASE}/media`} />}
       </Section>
     </div>
   )

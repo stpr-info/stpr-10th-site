@@ -87,7 +87,7 @@ export default function EventCard({
           <img
             src={event.keyVisual}
             alt={event.title}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+            className="w-full h-full object-contain"
           />
         )}
       </div>

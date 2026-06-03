@@ -30,12 +30,12 @@ const CATEGORIES: Category[] = [
 export default function CategoryGrid({ omit = [] }: { omit?: string[] }) {
   const categories = CATEGORIES.filter((c) => !omit.includes(c.id))
   return (
-    <div className="mx-auto grid max-w-[900px] grid-cols-2 gap-4 px-5 md:grid-cols-4">
+    <div className="mx-auto grid max-w-[900px] grid-cols-2 gap-2.5 px-4 md:grid-cols-4 md:gap-4 md:px-5">
       {categories.map((c) => (
         <a
           key={c.id}
           href={`#${c.id}`}
-          className="flex h-[120px] flex-col items-center justify-center rounded-[20px] p-4 no-underline"
+          className="flex h-[72px] flex-col items-center justify-center rounded-xl p-2 no-underline md:h-[120px] md:rounded-[20px] md:p-4"
           style={{
             background: "rgba(255,255,255,0.6)",
             backdropFilter: "blur(12px)",
@@ -55,12 +55,12 @@ export default function CategoryGrid({ omit = [] }: { omit?: string[] }) {
         >
           {/* 英語ラベル */}
           <span
-            className="text-[16px] font-semibold"
+            className="text-[12px] font-semibold md:text-[16px]"
             style={{
               fontFamily: "var(--font-cinzel), serif",
               letterSpacing: "0.2em",
               color: T.goldD,
-              marginBottom: "6px",
+              marginBottom: "2px",
             }}
           >
             {c.label}
@@ -68,7 +68,7 @@ export default function CategoryGrid({ omit = [] }: { omit?: string[] }) {
 
           {/* 日本語ラベル */}
           <span
-            className="text-[12px]"
+            className="text-[10px] md:text-[12px]"
             style={{
               fontFamily: "var(--font-noto-serif-jp), serif",
               color: T.muted,
@@ -78,9 +78,10 @@ export default function CategoryGrid({ omit = [] }: { omit?: string[] }) {
             {c.ja}
           </span>
 
-          {/* ゴールドの細いライン（下部装飾） */}
+          {/* ゴールドの細いライン（下部装飾・PC のみ） */}
           <span
             aria-hidden
+            className="hidden md:block"
             style={{
               marginTop: "12px",
               width: "30px",
