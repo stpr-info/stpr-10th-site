@@ -1,9 +1,6 @@
 "use client"
 
-import Link from "next/link"
 import { T } from "@/lib/theme"
-
-const BASE = "/stpr-10th-anniversary"
 
 type Size = "large" | "medium" | "small"
 
@@ -49,9 +46,9 @@ export default function CategoryGrid() {
   return (
     <div className="mx-auto grid max-w-[900px] grid-cols-2 gap-4 px-5 md:grid-cols-3">
       {CATEGORIES.map((c) => (
-        <Link
+        <a
           key={c.id}
-          href={`${BASE}/${c.id}`}
+          href={`#${c.id}`}
           className={`flex min-h-[110px] flex-col items-center justify-center rounded-[20px] p-6 no-underline ${SIZE_CLASS[c.size]}`}
           style={{
             background: "rgba(255,255,255,0.6)",
@@ -105,7 +102,7 @@ export default function CategoryGrid() {
               background: `linear-gradient(90deg, transparent, ${T.gold}, transparent)`,
             }}
           />
-        </Link>
+        </a>
       ))}
     </div>
   )

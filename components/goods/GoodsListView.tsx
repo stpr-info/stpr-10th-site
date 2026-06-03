@@ -10,8 +10,15 @@ import FilterTabs from "@/components/common/FilterTabs"
 import GroupHeading from "@/components/common/GroupHeading"
 import EmptyState from "@/components/common/EmptyState"
 
-/** グッズ一覧（カテゴリフィルタ / 年代別 / 並び替え / 表示切替）。カードはSP groupデザイン移植。 */
-export default function GoodsListView({ goods }: { goods: Goods[] }) {
+/** グッズ一覧（カテゴリフィルタ / 年代別 / 並び替え / 表示切替）。カードはSP groupデザイン移植。
+ *  showControls=false（TOP 用）でフィルタ・並び替え・表示切替 UI を隠す。 */
+export default function GoodsListView({
+  goods,
+  showControls = true,
+}: {
+  goods: Goods[]
+  showControls?: boolean
+}) {
   const categories = useMemo(() => {
     const set: string[] = []
     for (const g of goods) if (!set.includes(g.productType)) set.push(g.productType)
@@ -40,15 +47,17 @@ export default function GoodsListView({ goods }: { goods: Goods[] }) {
 
   return (
     <div className="theme-strawberry flex flex-col gap-4">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <FilterTabs options={categories} value={category} onChange={setCategory} />
-        <ListControls
-          sort={sort}
-          onSortChange={setSort}
-          view={view}
-          onViewChange={setView}
-        />
-      </div>
+      {showControls && (
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <FilterTabs options={categories} value={category} onChange={setCategory} />
+          <ListControls
+            sort={sort}
+            onSortChange={setSort}
+            view={view}
+            onViewChange={setView}
+          />
+        </div>
+      )}
 
       {filtered.length === 0 ? (
         <EmptyState label="該当するグッズがありません" />

@@ -23,8 +23,15 @@ const EVENT_TYPE_ORDER = [
   "その他",
 ]
 
-/** イベント一覧（eventType 別セクション / 並び替え / 表示切替）。カードはSP groupデザイン移植。 */
-export default function EventListView({ events }: { events: Event[] }) {
+/** イベント一覧（eventType 別セクション / 並び替え / 表示切替）。カードはSP groupデザイン移植。
+ *  showControls=false（TOP 用）で並び替え・表示切替 UI を隠す。 */
+export default function EventListView({
+  events,
+  showControls = true,
+}: {
+  events: Event[]
+  showControls?: boolean
+}) {
   const [sort, setSort] = useState<SortOrder>("newest")
   const [view, setView] = useState<ViewMode>("grid")
 
@@ -67,12 +74,14 @@ export default function EventListView({ events }: { events: Event[] }) {
 
   return (
     <div className="theme-strawberry flex flex-col gap-2">
-      <ListControls
-        sort={sort}
-        onSortChange={setSort}
-        view={view}
-        onViewChange={setView}
-      />
+      {showControls && (
+        <ListControls
+          sort={sort}
+          onSortChange={setSort}
+          view={view}
+          onViewChange={setView}
+        />
+      )}
 
       {sortedGroups.map(({ type, items }) => (
         <section key={type} className="mt-6">

@@ -9,8 +9,15 @@ import ListControls from "@/components/common/ListControls"
 import GroupHeading from "@/components/common/GroupHeading"
 import EmptyState from "@/components/common/EmptyState"
 
-/** アルバム一覧（年代別セクション / 並び替え） */
-export default function AlbumListView({ albums }: { albums: Album[] }) {
+/** アルバム一覧（年代別セクション / 並び替え）
+ *  showControls=false（TOP 用）で並び替え UI を隠す。 */
+export default function AlbumListView({
+  albums,
+  showControls = true,
+}: {
+  albums: Album[]
+  showControls?: boolean
+}) {
   const [sort, setSort] = useState<SortOrder>("newest")
 
   if (albums.length === 0) {
@@ -21,13 +28,15 @@ export default function AlbumListView({ albums }: { albums: Album[] }) {
 
   return (
     <div className="flex flex-col gap-2">
-      <ListControls
-        sort={sort}
-        onSortChange={setSort}
-        view="grid"
-        onViewChange={() => {}}
-        showView={false}
-      />
+      {showControls && (
+        <ListControls
+          sort={sort}
+          onSortChange={setSort}
+          view="grid"
+          onViewChange={() => {}}
+          showView={false}
+        />
+      )}
 
       {groups.map(({ year, items }) => (
         <section key={year} className="mt-6">

@@ -1,11 +1,17 @@
+import type { Magazine } from "@/data/magazines"
 import { getMagazines } from "@/lib/repo"
 import { formatDateDot } from "@/lib/utils"
 import SafeImage from "@/components/common/SafeImage"
 import EmptyState from "@/components/common/EmptyState"
 
-/** 雑誌一覧（カード形式・詳細ページなし） */
-export default async function MagazineListView() {
-  const magazines = await getMagazines()
+/** 雑誌一覧（カード形式・詳細ページなし）。
+ *  magazines 未指定時は自身で取得（既存の /magazine ページ互換）。 */
+export default async function MagazineListView({
+  magazines: magazinesProp,
+}: {
+  magazines?: Magazine[]
+} = {}) {
+  const magazines = magazinesProp ?? (await getMagazines())
 
   if (magazines.length === 0) {
     return <EmptyState label="雑誌情報を準備中です" />

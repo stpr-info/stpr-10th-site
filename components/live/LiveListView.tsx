@@ -9,8 +9,15 @@ import ListControls from "@/components/common/ListControls"
 import GroupHeading from "@/components/common/GroupHeading"
 import EmptyState from "@/components/common/EmptyState"
 
-/** ライブ一覧（年代別セクション / 並び替え / 表示切替）。カードはSP groupデザイン移植。 */
-export default function LiveListView({ lives }: { lives: Live[] }) {
+/** ライブ一覧（年代別セクション / 並び替え / 表示切替）。カードはSP groupデザイン移植。
+ *  showControls=false（TOP 用）で並び替え・表示切替 UI を隠す。 */
+export default function LiveListView({
+  lives,
+  showControls = true,
+}: {
+  lives: Live[]
+  showControls?: boolean
+}) {
   const [sort, setSort] = useState<SortOrder>("newest")
   const [view, setView] = useState<ViewMode>("grid")
 
@@ -31,12 +38,14 @@ export default function LiveListView({ lives }: { lives: Live[] }) {
 
   return (
     <div className="theme-strawberry flex flex-col gap-2">
-      <ListControls
-        sort={sort}
-        onSortChange={setSort}
-        view={view}
-        onViewChange={setView}
-      />
+      {showControls && (
+        <ListControls
+          sort={sort}
+          onSortChange={setSort}
+          view={view}
+          onViewChange={setView}
+        />
+      )}
 
       {groups.map(({ year, items }) => (
         <section key={year} className="mt-6">

@@ -9,34 +9,43 @@ const TABS: { key: MediaType; label: string }[] = [
   { key: "radio", label: "RADIO" },
 ]
 
-/** メディア一覧（TV / RADIO タブ・表形式） */
-export default function MediaListView({ media }: { media: Media[] }) {
+/** メディア一覧（TV / RADIO タブ・表形式）
+ *  showControls=false（TOP 用）でタブを隠し、全件（TV/RADIO）を表示する。 */
+export default function MediaListView({
+  media,
+  showControls = true,
+}: {
+  media: Media[]
+  showControls?: boolean
+}) {
   const [tab, setTab] = useState<MediaType>("tv")
 
   if (media.length === 0) {
     return <EmptyState label="メディア情報を準備中です" />
   }
 
-  const filtered = media.filter((m) => m.type === tab)
+  const filtered = showControls ? media.filter((m) => m.type === tab) : media
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex gap-2">
-        {TABS.map((t) => (
-          <button
-            key={t.key}
-            type="button"
-            onClick={() => setTab(t.key)}
-            className={`rounded-full border px-5 py-1.5 font-display text-xs tracking-[0.15em] transition-colors ${
-              tab === t.key
-                ? "border-gold-400 bg-gold-400 text-white"
-                : "border-gold-200 bg-white/60 text-[#6a5570] hover:border-gold-300"
-            }`}
-          >
-            {t.label}
-          </button>
-        ))}
-      </div>
+      {showControls && (
+        <div className="flex gap-2">
+          {TABS.map((t) => (
+            <button
+              key={t.key}
+              type="button"
+              onClick={() => setTab(t.key)}
+              className={`rounded-full border px-5 py-1.5 font-display text-xs tracking-[0.15em] transition-colors ${
+                tab === t.key
+                  ? "border-gold-400 bg-gold-400 text-white"
+                  : "border-gold-200 bg-white/60 text-[#6a5570] hover:border-gold-300"
+              }`}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
+      )}
 
       <div className="overflow-hidden rounded-2xl border border-gold-200/70 bg-white/55 backdrop-blur-sm">
         <table className="w-full text-left text-sm">
