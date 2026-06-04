@@ -58,8 +58,8 @@ export const metadata: Metadata = {
     title: "すとぷり10th",
   },
   icons: {
-    icon: "/logo-10th.png",
-    apple: "/logo-10th.png",
+    icon: "/icon-192.png",
+    apple: "/icon-192.png",
   },
 }
 
