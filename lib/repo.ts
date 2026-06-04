@@ -5,6 +5,7 @@
 // メンバー（MEMBERS）は固定データのため data/members.ts を継続使用する。
 
 import { createBrowserClient } from "@/lib/supabase/client"
+import { resolveYoutubeThumbnail } from "@/lib/utils"
 import type {
   Live,
   Venue,
@@ -436,14 +437,57 @@ function toMovie(r: Record<string, unknown>): Movie {
   }
 }
 
+/**
+ * songs テーブルの行を MOVIE 形式へ変換する。
+ * - title: 曲名 / url: youtubeUrl / publishDate: 発売日（published_date）
+ * - thumbnail: youtubeUrl（または youtube_id）から YouTube サムネイルを自動取得
+ * - category: 「MV」固定
+ * 呼び出し側で youtubeUrl が空の song は除外する。
+ */
+function songRowToMovie(r: Record<string, unknown>): Movie {
+  const youtubeUrl = u(r.youtube_url as string | null)
+  const youtubeId = u(r.youtube_id as string | null)
+  return {
+    id: `song-${String(r.slug)}`,
+    title: String(r.title),
+    url: youtubeUrl,
+    publishDate: u(r.published_date as string | null),
+    thumbnail: resolveYoutubeThumbnail(youtubeId, youtubeUrl),
+    category: "MV",
+  }
+}
+
 export async function getMovies(): Promise<Movie[]> {
-  const { data, error } = await read()
-    .from("movies")
-    .select("*")
-    .order("publish_date", { ascending: false, nullsFirst: false })
-    .order("created_at", { ascending: false })
-  if (error || !data) return []
-  return (data as Row[]).map(toMovie)
+  // movies テーブルと songs テーブルを並行取得してマージする。
+  const [moviesRes, songsRes] = await Promise.all([
+    read()
+      .from("movies")
+      .select("*")
+      .order("publish_date", { ascending: false, nullsFirst: false })
+      .order("created_at", { ascending: false }),
+    read().from("songs").select("*"),
+  ])
+
+  const movies = moviesRes.error || !moviesRes.data ? [] : (moviesRes.data as Row[]).map(toMovie)
+
+  // songs は youtubeUrl が空のものを除外して MOVIE 形式へ変換。
+  const songMovies =
+    songsRes.error || !songsRes.data
+      ? []
+      : (songsRes.data as Row[])
+          .filter((r) => {
+            const url = u(r.youtube_url as string | null)
+            return typeof url === "string" && url.trim() !== ""
+          })
+          .map(songRowToMovie)
+
+  // 発売日の新しい順に並べ替え（publishDate 無しは末尾）。
+  return [...movies, ...songMovies].sort((a, b) => {
+    if (!a.publishDate && !b.publishDate) return 0
+    if (!a.publishDate) return 1
+    if (!b.publishDate) return -1
+    return b.publishDate.localeCompare(a.publishDate)
+  })
 }
 
 // === 配信（STREAM）===
