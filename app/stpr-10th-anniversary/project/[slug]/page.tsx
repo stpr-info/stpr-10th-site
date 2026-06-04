@@ -14,6 +14,11 @@ function isHttpUrl(u?: string): boolean {
   return !!u && /^https?:\/\//i.test(u)
 }
 
+/** HTML タグを含むか（リッチテキスト保存値か、旧来のプレーンテキストか判定）。 */
+function looksLikeHtml(s: string): boolean {
+  return /<[a-z][\s\S]*>/i.test(s)
+}
+
 export async function generateMetadata({
   params,
 }: {
@@ -116,13 +121,20 @@ export default async function ProjectDetailPage({
         </div>
       </div>
 
-      {/* 説明 */}
+      {/* 説明（リッチテキスト HTML or 旧プレーンテキスト） */}
       {project.description && (
         <section className="mt-6 rounded-2xl border border-gold-200/70 bg-white/55 p-4 shadow-sm backdrop-blur-sm md:p-6">
           <h2 className="mb-3 font-serif font-bold text-[#3a2540]">企画について</h2>
-          <p className="whitespace-pre-wrap text-sm leading-relaxed text-[#6a5570]">
-            {project.description}
-          </p>
+          {looksLikeHtml(project.description) ? (
+            <div
+              className="rte-content text-[#3a2540]"
+              dangerouslySetInnerHTML={{ __html: project.description }}
+            />
+          ) : (
+            <p className="whitespace-pre-wrap text-sm leading-relaxed text-[#6a5570]">
+              {project.description}
+            </p>
+          )}
         </section>
       )}
 

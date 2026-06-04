@@ -19,6 +19,10 @@ import SafeImage from "@/components/common/SafeImage"
 import StatusBadge from "@/components/common/StatusBadge"
 import ImageGallery from "@/components/common/ImageGallery"
 import EventSection from "@/components/event/EventSection"
+import ShareButton from "@/components/common/ShareButton"
+import GoogleCalendarButton from "@/components/common/GoogleCalendarButton"
+import VenueMap from "@/components/common/VenueMap"
+import { SITE_URL } from "@/lib/site"
 
 const BASE = "/stpr-10th-anniversary"
 
@@ -60,6 +64,8 @@ export default async function LiveDetailPage({
     ? getLiveStatus(live.periodStart, live.periodEnd)
     : live.status
   const daysUntil = getDaysUntil(live.periodStart)
+  const shareUrl = `${SITE_URL}${BASE}/live/${live.slug}`
+  const shareText = `【すとぷり10周年】${live.title} に参加しました！ #すとぷり #すとぷり10周年 ${shareUrl}`
   const hasBaseSetlist = !!(live.setlist && live.setlist.length > 0)
   const venueSetlistNotes = live.venues.filter(
     (v) => v.setlistNotes && v.setlistNotes.trim().length > 0,
@@ -129,6 +135,18 @@ export default async function LiveDetailPage({
             <p className="whitespace-pre-wrap text-sm text-[#6a5570]">{live.description}</p>
           )}
         </div>
+      </div>
+
+      {/* シェア・カレンダー追加 */}
+      <div className="mb-6 flex flex-wrap gap-2">
+        <ShareButton text={shareText} />
+        <GoogleCalendarButton
+          title={live.title}
+          start={live.periodStart}
+          end={live.periodEnd}
+          details={shareUrl}
+          location={live.venues.length > 0 ? venuesSummary(live.venues) : undefined}
+        />
       </div>
 
       {/* カウントダウン */}
@@ -529,6 +547,13 @@ function VenueBlock({ venue }: { venue: Venue }) {
             <p className="mb-3 text-xs font-bold text-[#9a8aa0]">AREA MAP</p>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={venue.areaMapImage} alt="会場MAP" className="w-full rounded-lg" />
+          </div>
+        )}
+        {/* 会場の地図（Google Maps 埋め込み） */}
+        {venue.venueName && (
+          <div className="mt-4">
+            <p className="mb-3 text-xs font-bold text-[#9a8aa0]">MAP / 会場の地図</p>
+            <VenueMap query={venue.venueName} title={`${venue.venueName} の地図`} />
           </div>
         )}
       </div>

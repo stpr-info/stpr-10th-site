@@ -1,4 +1,5 @@
 import HeroSection from "@/components/home/HeroSection"
+import NextLiveCountdown from "@/components/home/NextLiveCountdown"
 import CategoryGrid from "@/components/home/CategoryGrid"
 import Section from "@/components/common/Section"
 import SectionHeading from "@/components/common/SectionHeading"
@@ -110,6 +111,9 @@ export default async function TopPage() {
           10年間の軌跡を、ここに。
         </p>
       </section>
+
+      {/* 2.5 次のライブまでカウントダウン（未来のライブが無ければ非表示） */}
+      <NextLiveCountdown lives={lives} />
 
       {/* 3. カテゴリーグリッド（同一ページ内アンカーへ） */}
       <section style={{ padding: "24px 16px" }}>

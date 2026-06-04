@@ -19,6 +19,9 @@ import type {
 import SafeImage from "@/components/common/SafeImage"
 import EventSection from "@/components/event/EventSection"
 import EventItemGrid, { type EventGridItem } from "@/components/event/EventItemGrid"
+import ShareButton from "@/components/common/ShareButton"
+import GoogleCalendarButton from "@/components/common/GoogleCalendarButton"
+import { SITE_URL } from "@/lib/site"
 
 const BASE = "/stpr-10th-anniversary"
 
@@ -63,6 +66,8 @@ export default async function EventDetailPage({
 
   const state = eventState(event)
   const daysUntil = getDaysUntil(event.periodStart)
+  const shareUrl = `${SITE_URL}${BASE}/event/${event.slug}`
+  const shareText = `【すとぷり10周年】${event.title} に参加しました！ #すとぷり #すとぷり10周年 ${shareUrl}`
 
   return (
     <div className="mx-auto max-w-6xl p-4 md:p-6">
@@ -146,6 +151,17 @@ export default async function EventDetailPage({
             <p className="whitespace-pre-wrap text-sm text-[#6a5570]">{event.description}</p>
           )}
         </div>
+      </div>
+
+      {/* シェア・カレンダー追加 */}
+      <div className="mb-6 flex flex-wrap gap-2">
+        <ShareButton text={shareText} />
+        <GoogleCalendarButton
+          title={event.title}
+          start={event.periodStart}
+          end={event.periodEnd}
+          details={shareUrl}
+        />
       </div>
 
       {/* カウントダウン */}

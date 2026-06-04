@@ -81,6 +81,13 @@ function parseField(field: Field, formData: FormData): unknown {
       return s === "" ? null : s
     }
 
+    case "richtext": {
+      // Tiptap が出力する HTML をそのまま text 列へ保存。空（空タグのみ）は null。
+      const s = String(raw ?? "").trim()
+      if (s === "" || s === "<p></p>") return null
+      return s
+    }
+
     default: {
       // text / textarea / select
       const s = String(raw ?? "")
