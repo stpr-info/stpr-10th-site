@@ -4,6 +4,8 @@ import { notFound } from "next/navigation"
 import { getMemberById, formatDateDot } from "@/lib/utils"
 import { getGoodsBySlug } from "@/lib/repo"
 import SafeImage from "@/components/common/SafeImage"
+import ShareButton from "@/components/common/ShareButton"
+import { SITE_URL } from "@/lib/site"
 
 const BASE = "/stpr-10th-anniversary"
 
@@ -39,6 +41,9 @@ export default async function GoodsDetailPage({
   const members = (goods.memberIds ?? [])
     .map(getMemberById)
     .filter((m): m is NonNullable<typeof m> => Boolean(m))
+
+  const shareUrl = `${SITE_URL}${BASE}/goods/${goods.slug}`
+  const shareText = `【すとぷり10周年】${goods.title} をゲットしました！ #すとぷり #すとぷり10周年 ${shareUrl}`
 
   return (
     <div className="mx-auto max-w-6xl p-4 md:p-6">
@@ -105,6 +110,11 @@ export default async function GoodsDetailPage({
             <p className="whitespace-pre-wrap text-sm text-[#6a5570]">{goods.description}</p>
           )}
         </div>
+      </div>
+
+      {/* シェア */}
+      <div className="mb-6 flex flex-wrap gap-2">
+        <ShareButton text={shareText} />
       </div>
 
       {/* 購入リンク */}

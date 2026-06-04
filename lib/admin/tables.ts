@@ -14,6 +14,7 @@ export type FieldType =
   | "image" // Storage 画像（ファイル選択 → 公開URL）。保存値は text(URL)
   | "imagelist" // 複数画像（ファイル選択を行追加）。保存値は text[]
   | "repeater" // 行の追加/削除ができる専用UI → jsonb 配列
+  | "richtext" // Tiptap リッチテキスト。保存値は HTML 文字列（text）
 
 /** repeater の行内サブ項目（テキストエリア廃止のため専用UIで使う） */
 export type SubFieldType =
@@ -561,7 +562,12 @@ export const TABLES: Record<string, TableConfig> = {
       { name: "thumbnail", label: "サムネイル画像", type: "image", help: "画像ファイルを選択するとアップロードして公開URLを自動入力します。" },
       { name: "images", label: "画像ギャラリー（複数）", type: "image", multiple: true },
       { name: "url", label: "外部URL", type: "text" },
-      { name: "description", label: "説明", type: "textarea" },
+      {
+        name: "description",
+        label: "説明（リッチテキスト）",
+        type: "richtext",
+        help: "見出し・装飾・リスト・リンク・画像が使えます。HTML として保存されます。",
+      },
     ],
   },
 

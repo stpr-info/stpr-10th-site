@@ -212,3 +212,108 @@
 body {
   color: #3a2540;
 }
+
+/* =========================================================================
+ * リッチテキスト（Tiptap）本文タイポグラフィ
+ * PROJECT 詳細の保存 HTML 表示・admin エディタの編集領域で共用。
+ * サイトのピンク（ローズ）× ゴールドに合わせる。
+ * ========================================================================= */
+.rte-content {
+  font-size: 0.95rem;
+  line-height: 1.85;
+  color: #3a2540;
+  word-break: break-word;
+}
+.rte-content > :first-child {
+  margin-top: 0;
+}
+.rte-content h1 {
+  font-family: var(--font-noto-serif-jp), serif;
+  font-size: 1.6rem;
+  font-weight: 700;
+  line-height: 1.4;
+  margin: 1.6em 0 0.6em;
+  padding-bottom: 0.25em;
+  color: #3a2540;
+  border-bottom: 2px solid var(--color-gold-200);
+}
+.rte-content h2 {
+  font-family: var(--font-noto-serif-jp), serif;
+  font-size: 1.3rem;
+  font-weight: 700;
+  margin: 1.5em 0 0.5em;
+  padding-left: 0.55em;
+  color: #3a2540;
+  border-left: 4px solid var(--color-rose-400);
+}
+.rte-content h3 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin: 1.3em 0 0.4em;
+  color: var(--color-gold-700);
+}
+.rte-content p {
+  margin: 0.8em 0;
+}
+.rte-content a {
+  color: var(--color-rose-500);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.rte-content a:hover {
+  color: var(--color-rose-600);
+}
+.rte-content ul,
+.rte-content ol {
+  margin: 0.8em 0;
+  padding-left: 1.5em;
+}
+.rte-content ul {
+  list-style: disc;
+}
+.rte-content ol {
+  list-style: decimal;
+}
+.rte-content li {
+  margin: 0.3em 0;
+}
+.rte-content li::marker {
+  color: var(--color-gold-500);
+}
+.rte-content blockquote {
+  margin: 1em 0;
+  padding: 0.5em 1em;
+  border-left: 4px solid var(--color-gold-300);
+  background: rgba(253, 245, 211, 0.4);
+  color: #6a5570;
+  border-radius: 0 0.5rem 0.5rem 0;
+}
+.rte-content img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 0.75rem;
+  margin: 1em 0;
+}
+.rte-content strong {
+  font-weight: 700;
+}
+.rte-content code {
+  font-family: ui-monospace, monospace;
+  font-size: 0.85em;
+  background: rgba(244, 114, 182, 0.12);
+  padding: 0.1em 0.4em;
+  border-radius: 0.35em;
+}
+.rte-content hr {
+  border: 0;
+  border-top: 1px solid var(--color-gold-200);
+  margin: 1.5em 0;
+}
+
+/* Tiptap 編集領域（admin）: プレースホルダ的な空状態に最低高さを与える。 */
+.rte-content.ProseMirror:focus {
+  outline: none;
+}
+.rte-content .ProseMirror-selectednode {
+  outline: 2px solid var(--color-gold-400);
+}

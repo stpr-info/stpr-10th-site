@@ -83,6 +83,64 @@ export function getDaysUntil(dateStr?: string): number | null {
   return Math.round((target.getTime() - today.getTime()) / 86400000)
 }
 
+/** 日付文字列（YYYY-MM-DD…）を {y,m,d} に分解。失敗時 null。 */
+function parseYmd(dateStr?: string): { y: number; m: number; d: number } | null {
+  if (!dateStr) return null
+  const m = /^(\d{4})[-/.](\d{1,2})[-/.](\d{1,2})/.exec(String(dateStr).trim())
+  if (!m) return null
+  return { y: Number(m[1]), m: Number(m[2]), d: Number(m[3]) }
+}
+
+/** "2026-06-04" → "20260604"（Googleカレンダー用）。失敗時 null。 */
+function toCalendarYmd(dateStr?: string): string | null {
+  const p = parseYmd(dateStr)
+  if (!p) return null
+  return `${p.y}${String(p.m).padStart(2, "0")}${String(p.d).padStart(2, "0")}`
+}
+
+/** "20260604" を 1 日進めた "YYYYMMDD" を返す（終了日は排他指定のため）。 */
+function nextDayCalendarYmd(ymd: string): string {
+  const y = Number(ymd.slice(0, 4))
+  const m = Number(ymd.slice(4, 6))
+  const d = Number(ymd.slice(6, 8))
+  const dt = new Date(y, m - 1, d + 1)
+  return `${dt.getFullYear()}${String(dt.getMonth() + 1).padStart(2, "0")}${String(
+    dt.getDate(),
+  ).padStart(2, "0")}`
+}
+
+/** X（旧Twitter）シェア用の intent URL を組み立てる。 */
+export function buildTweetUrl(text: string): string {
+  return `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`
+}
+
+/**
+ * Googleカレンダー「予定を追加」URL を組み立てる。
+ * 日付のみ（時刻なし）の終日予定として扱い、終了日は排他指定（翌日）にする。
+ * 開始日が解釈できない場合は null（ボタンを出さない）。
+ */
+export function buildGoogleCalendarUrl(opts: {
+  title: string
+  start?: string
+  end?: string
+  details?: string
+  location?: string
+}): string | null {
+  const startYmd = toCalendarYmd(opts.start)
+  if (!startYmd) return null
+  const endYmd = toCalendarYmd(opts.end) ?? startYmd
+  const dates = `${startYmd}/${nextDayCalendarYmd(endYmd)}`
+  const params = new URLSearchParams({ action: "TEMPLATE", text: opts.title, dates })
+  if (opts.details) params.set("details", opts.details)
+  if (opts.location) params.set("location", opts.location)
+  return `https://www.google.com/calendar/render?${params.toString()}`
+}
+
+/** Google Maps 埋め込み（iframe src）URL。会場名などをそのままクエリに使う。 */
+export function buildMapsEmbedUrl(query: string): string {
+  return `https://maps.google.com/maps?q=${encodeURIComponent(query)}&output=embed`
+}
+
 /**
  * YouTube の動画 ID からサムネイル URL を生成する。
  * maxresdefault は動画によっては存在しないため、必ず用意される hqdefault を使う。

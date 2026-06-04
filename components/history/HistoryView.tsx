@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react"
 import Link from "next/link"
 import type { TimelineCategory, TimelineItem } from "@/lib/utils"
+import HistoryCalendar from "@/components/history/HistoryCalendar"
 
 type Props = {
   items: TimelineItem[]
@@ -56,6 +57,7 @@ export default function HistoryView({ items }: Props) {
 
   const [year, setYear] = useState<number | undefined>(years[0])
   const [category, setCategory] = useState<"all" | TimelineCategory>("all")
+  const [view, setView] = useState<"list" | "calendar">("list")
 
   if (items.length === 0) {
     return (
@@ -74,26 +76,52 @@ export default function HistoryView({ items }: Props) {
 
   return (
     <>
-      {/* 年タブ */}
-      <div className="-mx-4 mb-4 flex gap-2 overflow-x-auto px-4 pb-2 md:mx-0 md:px-0">
-        {years.map((y) => {
-          const isActive = y === currentYear
+      {/* リスト / カレンダー 表示切替トグル */}
+      <div className="mb-4 inline-flex rounded-full border border-gold-200 bg-white p-0.5">
+        {(
+          [
+            { key: "list", label: "リスト" },
+            { key: "calendar", label: "カレンダー" },
+          ] as const
+        ).map((opt) => {
+          const isActive = view === opt.key
           return (
             <button
-              key={y}
+              key={opt.key}
               type="button"
-              onClick={() => setYear(y)}
-              className={`shrink-0 whitespace-nowrap rounded-full border px-4 py-1.5 text-sm font-bold transition-colors ${
-                isActive
-                  ? "border-gold-400 bg-gold-400 text-white"
-                  : "border-gold-200 bg-white text-[#6a5570] hover:border-gold-300 hover:text-gold-600"
+              onClick={() => setView(opt.key)}
+              className={`rounded-full px-4 py-1.5 text-sm font-bold transition-colors ${
+                isActive ? "bg-gold-400 text-white" : "text-[#6a5570] hover:text-gold-600"
               }`}
             >
-              {y}
+              {opt.label}
             </button>
           )
         })}
       </div>
+
+      {/* 年タブ（リスト表示のみ） */}
+      {view === "list" && (
+        <div className="-mx-4 mb-4 flex gap-2 overflow-x-auto px-4 pb-2 md:mx-0 md:px-0">
+          {years.map((y) => {
+            const isActive = y === currentYear
+            return (
+              <button
+                key={y}
+                type="button"
+                onClick={() => setYear(y)}
+                className={`shrink-0 whitespace-nowrap rounded-full border px-4 py-1.5 text-sm font-bold transition-colors ${
+                  isActive
+                    ? "border-gold-400 bg-gold-400 text-white"
+                    : "border-gold-200 bg-white text-[#6a5570] hover:border-gold-300 hover:text-gold-600"
+                }`}
+              >
+                {y}
+              </button>
+            )
+          })}
+        </div>
+      )}
 
       {/* カテゴリーフィルタ */}
       <div className="mb-6 flex flex-col gap-3">
@@ -121,28 +149,40 @@ export default function HistoryView({ items }: Props) {
         </div>
 
         <p className="text-xs text-[#9a8aa0]">
-          {currentYear} 年: {filteredYear.length} 件
-          {category !== "all" && (
-            <span className="ml-1 text-gold-300">/ 全期間 {filteredAll.length} 件</span>
+          {view === "list" ? (
+            <>
+              {currentYear} 年: {filteredYear.length} 件
+              {category !== "all" && (
+                <span className="ml-1 text-gold-300">/ 全期間 {filteredAll.length} 件</span>
+              )}
+            </>
+          ) : (
+            <>全期間: {filteredAll.length} 件</>
           )}
         </p>
       </div>
 
-      {/* 年見出し */}
-      <div className="mb-5 flex items-center gap-3">
-        <span className="block h-7 w-1 rounded-sm bg-gold-400" aria-hidden />
-        <h2 className="font-serif text-2xl font-bold tabular-nums text-[#3a2540] md:text-3xl">
-          {currentYear}
-        </h2>
-      </div>
+      {/* カレンダー表示 */}
+      {view === "calendar" && <HistoryCalendar items={filteredAll} />}
 
-      {/* アイテム一覧 */}
-      {filteredYear.length === 0 ? (
-        <div className="py-16 text-center text-sm text-[#9a8aa0]">
-          条件に一致する出来事がありません
+      {/* 年見出し（リスト表示のみ） */}
+      {view === "list" && (
+        <div className="mb-5 flex items-center gap-3">
+          <span className="block h-7 w-1 rounded-sm bg-gold-400" aria-hidden />
+          <h2 className="font-serif text-2xl font-bold tabular-nums text-[#3a2540] md:text-3xl">
+            {currentYear}
+          </h2>
         </div>
-      ) : (
-        <ol className="relative ml-4 border-l border-gold-200">
+      )}
+
+      {/* アイテム一覧（リスト表示のみ） */}
+      {view === "list" &&
+        (filteredYear.length === 0 ? (
+          <div className="py-16 text-center text-sm text-[#9a8aa0]">
+            条件に一致する出来事がありません
+          </div>
+        ) : (
+          <ol className="relative ml-4 border-l border-gold-200">
           {filteredYear.map((item, i) => {
             const meta = CATEGORY_META[item.category]
             const isExternal = item.href.startsWith("http")
@@ -230,7 +270,7 @@ export default function HistoryView({ items }: Props) {
             )
           })}
         </ol>
-      )}
+        ))}
     </>
   )
 }

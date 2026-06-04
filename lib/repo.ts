@@ -513,6 +513,151 @@ export async function getStreams(): Promise<Stream[]> {
   return (data as Row[]).map(toStream)
 }
 
+// === 全文検索（ilike 横断） ===
+
+const SEARCH_BASE = "/stpr-10th-anniversary"
+
+export type SearchCategory =
+  | "live"
+  | "goods"
+  | "event"
+  | "song"
+  | "album"
+  | "magazine"
+  | "media"
+
+export type SearchHit = {
+  category: SearchCategory
+  title: string
+  sub?: string
+  href: string
+}
+
+export type SearchGroup = {
+  category: SearchCategory
+  label: string
+  hits: SearchHit[]
+}
+
+/** ilike パターンを壊す文字（カンマ・括弧・ワイルドカード等）を除去する。 */
+function sanitizeSearchTerm(q: string): string {
+  return q.replace(/[,()*%\\]/g, " ").replace(/\s+/g, " ").trim()
+}
+
+const SEARCH_LABELS: Record<SearchCategory, string> = {
+  live: "ライブ",
+  goods: "グッズ",
+  event: "イベント",
+  song: "楽曲",
+  album: "アルバム",
+  magazine: "雑誌",
+  media: "メディア",
+}
+
+/**
+ * lives / goods / events / songs / albums / magazines / media を ilike で横断検索する。
+ * カテゴリ別にグループ化して返す。0 件のグループは除外。
+ */
+export async function searchAll(query: string): Promise<SearchGroup[]> {
+  const term = sanitizeSearchTerm(query)
+  if (!term) return []
+  const pat = `%${term}%`
+  const client = read()
+
+  // 指定列の OR ilike で 1 テーブルを検索する。
+  const run = async (table: string, cols: string[]): Promise<Row[]> => {
+    const or = cols.map((c) => `${c}.ilike.${pat}`).join(",")
+    const { data, error } = await client.from(table).select("*").or(or).limit(50)
+    if (error || !data) return []
+    return data as Row[]
+  }
+
+  const [lives, goods, events, songs, albums, magazines, media] = await Promise.all([
+    run("lives", ["title", "description"]),
+    run("goods", ["title", "description"]),
+    run("events", ["title", "description"]),
+    run("songs", ["title", "artist", "description"]),
+    run("albums", ["title", "artist", "description"]),
+    run("magazines", ["name", "content"]),
+    run("media", ["program_name", "station", "content"]),
+  ])
+
+  const groups: SearchGroup[] = [
+    {
+      category: "live",
+      label: SEARCH_LABELS.live,
+      hits: lives.map((r) => ({
+        category: "live" as const,
+        title: String(r.title ?? ""),
+        sub: u(r.live_type as string | null),
+        href: `${SEARCH_BASE}/live/${String(r.slug)}`,
+      })),
+    },
+    {
+      category: "goods",
+      label: SEARCH_LABELS.goods,
+      hits: goods.map((r) => ({
+        category: "goods" as const,
+        title: String(r.title ?? ""),
+        sub: u(r.product_type as string | null),
+        href: `${SEARCH_BASE}/goods/${String(r.slug)}`,
+      })),
+    },
+    {
+      category: "event",
+      label: SEARCH_LABELS.event,
+      hits: events.map((r) => ({
+        category: "event" as const,
+        title: String(r.title ?? ""),
+        sub: u(r.event_type as string | null),
+        href: `${SEARCH_BASE}/event/${String(r.slug)}`,
+      })),
+    },
+    {
+      category: "song",
+      label: SEARCH_LABELS.song,
+      hits: songs.map((r) => ({
+        category: "song" as const,
+        title: String(r.title ?? ""),
+        sub: u(r.artist as string | null),
+        href: `${SEARCH_BASE}/music/${String(r.slug)}`,
+      })),
+    },
+    {
+      category: "album",
+      label: SEARCH_LABELS.album,
+      hits: albums.map((r) => ({
+        category: "album" as const,
+        title: String(r.title ?? ""),
+        sub: u(r.artist as string | null),
+        href: `${SEARCH_BASE}/album/${String(r.slug)}`,
+      })),
+    },
+    {
+      category: "magazine",
+      label: SEARCH_LABELS.magazine,
+      hits: magazines.map((r) => ({
+        category: "magazine" as const,
+        title: String(r.name ?? ""),
+        sub: u(r.issue as string | null),
+        href: `${SEARCH_BASE}/magazine/${String(r.id)}`,
+      })),
+    },
+    {
+      category: "media",
+      label: SEARCH_LABELS.media,
+      hits: media.map((r) => ({
+        category: "media" as const,
+        title: String(r.program_name ?? ""),
+        sub: u(r.station as string | null),
+        href: u(r.url as string | null) ?? "#",
+      })),
+    },
+  ]
+
+  return groups.filter((g) => g.hits.length > 0)
+}
+
 /** 指定テーブルの行数（head count のみ・データ本体は取得しない）。失敗時は 0。 */
 export async function getCount(table: string): Promise<number> {
   const { count, error } = await read()

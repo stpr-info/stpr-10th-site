@@ -7,10 +7,11 @@ import type { FormState } from "@/app/admin/crud-actions"
 import ImageField from "./ImageField"
 import ImageListField from "./ImageListField"
 import RepeaterField from "./RepeaterField"
+import RichTextEditor from "./RichTextEditor"
 
 // 複数コントロールを内包し、<label> で包むと余白クリックが内部の最初の
 // ボタン（行削除等）を発火させてしまう型。これらは <div> でラップする。
-const BLOCK_TYPES = new Set(["repeater", "image", "imagelist"])
+const BLOCK_TYPES = new Set(["repeater", "image", "imagelist", "richtext"])
 
 type Props = {
   action: (prevState: FormState, formData: FormData) => Promise<FormState>
@@ -123,6 +124,14 @@ export default function RecordForm({
 
             {field.type === "imagelist" && (
               <ImageListField name={field.name} table={table} initialValue={value} />
+            )}
+
+            {field.type === "richtext" && (
+              <RichTextEditor
+                name={field.name}
+                table={table}
+                initialValue={value == null ? "" : String(value)}
+              />
             )}
 
             {field.type === "repeater" && (
