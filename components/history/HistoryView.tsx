@@ -7,6 +7,8 @@ import HistoryCalendar from "@/components/history/HistoryCalendar"
 
 type Props = {
   items: TimelineItem[]
+  // 会場公演（schedules）チップ。カレンダー表示専用（リスト・件数には影響しない）。
+  liveSchedules?: TimelineItem[]
 }
 
 const CATEGORY_META: Record<
@@ -47,7 +49,7 @@ function fmtRange(startDate: string, endDate?: string): string {
  * - グループフィルタは廃止（単一作品）。年タブ + カテゴリーフィルタ + 縦タイムライン。
  * - アクセントはサイトカラー（ゴールド）。
  */
-export default function HistoryView({ items }: Props) {
+export default function HistoryView({ items, liveSchedules = [] }: Props) {
   const years = useMemo(() => {
     const set = new Set<number>()
     items.forEach((i) => set.add(i.year))
@@ -73,6 +75,9 @@ export default function HistoryView({ items }: Props) {
     (i) => category === "all" || i.category === category,
   )
   const filteredYear = filteredAll.filter((i) => i.year === currentYear)
+  // カレンダーの会場公演チップ。カテゴリーが「all / live」のときのみ表示。
+  const calendarSchedules =
+    category === "all" || category === "live" ? liveSchedules : []
 
   return (
     <>
@@ -163,7 +168,9 @@ export default function HistoryView({ items }: Props) {
       </div>
 
       {/* カレンダー表示 */}
-      {view === "calendar" && <HistoryCalendar items={filteredAll} />}
+      {view === "calendar" && (
+        <HistoryCalendar items={filteredAll} schedules={calendarSchedules} />
+      )}
 
       {/* 年見出し（リスト表示のみ） */}
       {view === "list" && (

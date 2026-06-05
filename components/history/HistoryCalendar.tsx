@@ -6,6 +6,8 @@ import type { TimelineCategory, TimelineItem } from "@/lib/utils"
 
 type Props = {
   items: TimelineItem[]
+  // 会場公演（schedules）チップ。live のチップ表示はこちらに置き換える。
+  schedules?: TimelineItem[]
 }
 
 // カテゴリ別のチップ配色（HistoryView と統一）。
@@ -33,22 +35,30 @@ function splitYmd(s: string): { y: number; m: number; d: number } | null {
 
 /**
  * HISTORY 月カレンダービュー（外部ライブラリ不使用の自前実装）。
- * - 各日付にライブ・イベント・グッズ等のチップを表示。期間イベントも開始日のみ表示。
+ * - 各日付にイベント・グッズ等のチップを表示。ライブは会場公演（schedules）単位で各公演日に表示。
  * - 今日の日付はゴールドの枠線でハイライト。
  * - 日付クリックで「その日に始まる出来事」+「🔥 開催中（期間が重なるもの）」を下部表示。
+ *   「開催中」はライブ全体の期間（period_start〜period_end）で判定する。
  * - 初期表示はアイテムが存在する月（最も早い日付の月）。
  */
-export default function HistoryCalendar({ items }: Props) {
-  // 日付（YYYY-MM-DD）→ アイテム配列。期間イベントは開始日のみに置く。
+export default function HistoryCalendar({ items, schedules = [] }: Props) {
+  // 日付（YYYY-MM-DD）→ チップ配列。
+  // live は会場公演（schedules）チップに置き換えるため items の live は除外する。
+  // （items の live アイテムは下部「開催中」判定のためにそのまま保持する。）
   const byDate = useMemo(() => {
     const map = new Map<string, TimelineItem[]>()
-    for (const it of items) {
+    const add = (it: TimelineItem) => {
       const arr = map.get(it.date)
       if (arr) arr.push(it)
       else map.set(it.date, [it])
     }
+    for (const it of items) {
+      if (it.category === "live") continue
+      add(it)
+    }
+    for (const s of schedules) add(s)
     return map
-  }, [items])
+  }, [items, schedules])
 
   // 今日（YYYY-MM-DD）。クライアントの現在時刻で算出。
   const today = useMemo(() => {

@@ -2,7 +2,7 @@ import type { Metadata } from "next"
 import PageContainer from "@/components/common/PageContainer"
 import HistoryView from "@/components/history/HistoryView"
 import { getLives, getEvents, getGoods, getMagazines, getMedia } from "@/lib/repo"
-import { buildTimeline } from "@/lib/utils"
+import { buildTimeline, buildLiveSchedules } from "@/lib/utils"
 
 export const dynamic = "force-dynamic"
 
@@ -21,10 +21,11 @@ export default async function HistoryPage() {
   ])
 
   const items = buildTimeline({ lives, events, goods, magazines, media })
+  const liveSchedules = buildLiveSchedules(lives)
 
   return (
     <PageContainer subtitle="SCHEDULE" title="スケジュール">
-      <HistoryView items={items} />
+      <HistoryView items={items} liveSchedules={liveSchedules} />
     </PageContainer>
   )
 }

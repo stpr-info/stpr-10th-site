@@ -393,3 +393,51 @@ export function buildTimeline(opts: {
   })
   return out
 }
+
+/**
+ * lives の各会場公演（venues[].shows[].date）をカレンダー用のチップへ展開する。
+ * - 1 公演日 = 1 アイテム。タイトルは「{ライブ名} - {会場名}」。
+ * - 同一会場で同日に複数公演（昼/夜）があっても日付単位で1件に集約。
+ * - 会場・公演日データを持たないライブは periodStart にライブ名のみで1件フォールバック。
+ * - カレンダーのチップ表示専用。「開催中」判定は buildTimeline の live アイテム
+ *   （periodStart〜periodEnd）が担うため、ここには endDate を持たせない。
+ */
+export function buildLiveSchedules(lives: Live[]): TimelineItem[] {
+  const out: TimelineItem[] = []
+  for (const l of lives ?? []) {
+    const href = `${TIMELINE_BASE}/live/${l.slug}`
+    let pushed = 0
+    for (const v of l.venues ?? []) {
+      const venueName = v.venueName || v.stageName
+      if (!venueName) continue
+      const seen = new Set<string>()
+      for (const s of v.shows ?? []) {
+        const date = normalizeTimelineDate(s.date)
+        if (!date || seen.has(date)) continue
+        seen.add(date)
+        out.push({
+          date,
+          year: Number(date.slice(0, 4)),
+          category: "live",
+          title: `${l.title} - ${venueName}`,
+          href,
+        })
+        pushed++
+      }
+    }
+    // 会場公演データが無い場合は従来どおり periodStart に1件だけ表示。
+    if (pushed === 0) {
+      const date = normalizeTimelineDate(l.periodStart)
+      if (date) {
+        out.push({
+          date,
+          year: Number(date.slice(0, 4)),
+          category: "live",
+          title: l.title,
+          href,
+        })
+      }
+    }
+  }
+  return out
+}
