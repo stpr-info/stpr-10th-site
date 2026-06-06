@@ -102,7 +102,9 @@ export async function uploadImage(formData: FormData): Promise<UploadResult> {
   const slug = slugRaw
     ? slugRaw.replace(/[^a-zA-Z0-9-_]+/g, "-").replace(/^-+|-+$/g, "") || "item"
     : `_${uniqueSegment()}`
-  const path = `${table}/${slug}/${sanitizeFilename(file.name)}`
+  // ファイル名にユニークセグメントを付与し、同名ファイルでもパスが衝突しないようにする。
+  // （複数画像アップロード時に 2 枚目以降が 1 枚目を上書きして同じ URL になるのを防ぐ）
+  const path = `${table}/${slug}/${uniqueSegment()}-${sanitizeFilename(file.name)}`
 
   let supabase
   try {
