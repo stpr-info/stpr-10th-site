@@ -23,6 +23,7 @@ import EventSection from "@/components/event/EventSection"
 import ShareButton from "@/components/common/ShareButton"
 import GoogleCalendarButton from "@/components/common/GoogleCalendarButton"
 import VenueMap from "@/components/common/VenueMap"
+import SetlistSelector from "@/components/live/SetlistSelector"
 import { SITE_URL } from "@/lib/site"
 
 const BASE = "/stpr-10th-anniversary"
@@ -351,50 +352,10 @@ export default async function LiveDetailPage({
         </EventSection>
       )}
 
-      {/* セットリスト（基本セトリ + 公演ごと + 各会場の変更メモ）: アコーディオン */}
+      {/* セットリスト（基本 + 公演ごとをタブ切替 + 各会場の変更メモ）: アコーディオン */}
       {(hasBaseSetlist || showSetlists.length > 0 || venueSetlistNotes.length > 0) && (
         <EventSection title="セトリ">
-          {hasBaseSetlist && (
-            <>
-              <p className="mb-2 text-xs font-bold text-[#9a8aa0]">基本セットリスト</p>
-              <ol className="rounded-xl bg-gold-50/40 p-2">
-                {[...live.setlist!]
-                  .sort((a, b) => (a.trackNumber ?? 0) - (b.trackNumber ?? 0))
-                  .map((s, i) => (
-                    <li key={i} className="flex items-center gap-3 rounded p-1.5">
-                      <span className="w-8 shrink-0 text-right text-xs text-[#9a8aa0]">
-                        {s.trackNumber != null ? String(s.trackNumber).padStart(2, "0") : "－"}
-                      </span>
-                      <span className="flex-1 text-sm text-[#3a2540]">{s.title || "?"}</span>
-                      {s.memo && <span className="text-xs text-[#9a8aa0]">{s.memo}</span>}
-                    </li>
-                  ))}
-              </ol>
-            </>
-          )}
-          {showSetlists.length > 0 && (
-            <div className="mt-4 space-y-3">
-              <p className="text-xs font-bold text-[#9a8aa0]">公演ごとのセットリスト</p>
-              {showSetlists.map((ss, i) => (
-                <div key={i} className={BLOCK}>
-                  <h4 className="mb-2 text-sm font-bold text-gold-700">{ss.showRef}</h4>
-                  <ol className="rounded-xl bg-gold-50/40 p-2">
-                    {[...ss.setlist!]
-                      .sort((a, b) => (a.trackNumber ?? 0) - (b.trackNumber ?? 0))
-                      .map((s, j) => (
-                        <li key={j} className="flex items-center gap-3 rounded p-1.5">
-                          <span className="w-8 shrink-0 text-right text-xs text-[#9a8aa0]">
-                            {s.trackNumber != null ? String(s.trackNumber).padStart(2, "0") : "－"}
-                          </span>
-                          <span className="flex-1 text-sm text-[#3a2540]">{s.title || "?"}</span>
-                          {s.memo && <span className="text-xs text-[#9a8aa0]">{s.memo}</span>}
-                        </li>
-                      ))}
-                  </ol>
-                </div>
-              ))}
-            </div>
-          )}
+          <SetlistSelector base={live.setlist} showSetlists={showSetlists} variant="gold" />
           {venueSetlistNotes.length > 0 && (
             <div className="mt-4 space-y-2">
               <p className="text-xs font-bold text-[#9a8aa0]">会場ごとの変更メモ</p>

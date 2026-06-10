@@ -4,6 +4,7 @@ import { notFound } from "next/navigation"
 import { getLiveBySlug } from "@/lib/repo"
 import { getGroupName } from "@/data/groups"
 import { formatPeriod, formatVenueName, getLiveStatus } from "@/lib/utils"
+import SetlistSelector from "@/components/live/SetlistSelector"
 
 type Params = { params: Promise<{ slug: string }> }
 
@@ -147,58 +148,19 @@ export default async function LiveDetailPage({ params }: Params) {
         </section>
       )}
 
-      {/* セットリスト */}
-      {live.setlist && live.setlist.length > 0 && (
+      {/* セットリスト（基本 + 公演ごとをタブ切替） */}
+      {((live.setlist && live.setlist.length > 0) ||
+        (live.showSetlists ?? []).some(
+          (ss) => ss.showRef && ss.setlist && ss.setlist.length > 0,
+        )) && (
         <section className="mt-8">
           <h2 className="mb-3 flex items-center gap-2 text-base font-bold text-gray-900">
             <span aria-hidden className="inline-block h-5 w-1 rounded-sm bg-accent-600" />
             セットリスト
           </h2>
-          <ol className="space-y-1 text-sm text-gray-700">
-            {live.setlist.map((s, i) => (
-              <li key={i} className="flex gap-2">
-                <span className="w-6 shrink-0 text-right text-accent-600">{s.trackNumber ?? i + 1}.</span>
-                <span>{s.title}</span>
-                {s.memo && <span className="text-gray-400">（{s.memo}）</span>}
-              </li>
-            ))}
-          </ol>
+          <SetlistSelector base={live.setlist} showSetlists={live.showSetlists} variant="plain" />
         </section>
       )}
-
-      {/* 公演ごとのセットリスト */}
-      {live.showSetlists &&
-        live.showSetlists.filter((ss) => ss.showRef && ss.setlist && ss.setlist.length > 0).length >
-          0 && (
-          <section className="mt-8">
-            <h2 className="mb-3 flex items-center gap-2 text-base font-bold text-gray-900">
-              <span aria-hidden className="inline-block h-5 w-1 rounded-sm bg-accent-600" />
-              公演ごとのセットリスト
-            </h2>
-            <div className="space-y-5">
-              {live.showSetlists
-                .filter((ss) => ss.showRef && ss.setlist && ss.setlist.length > 0)
-                .map((ss, i) => (
-                  <div key={i}>
-                    <p className="mb-2 font-semibold text-gray-800">{ss.showRef}</p>
-                    <ol className="space-y-1 text-sm text-gray-700">
-                      {[...ss.setlist!]
-                        .sort((a, b) => (a.trackNumber ?? 0) - (b.trackNumber ?? 0))
-                        .map((s, j) => (
-                          <li key={j} className="flex gap-2">
-                            <span className="w-6 shrink-0 text-right text-accent-600">
-                              {s.trackNumber ?? j + 1}.
-                            </span>
-                            <span>{s.title}</span>
-                            {s.memo && <span className="text-gray-400">（{s.memo}）</span>}
-                          </li>
-                        ))}
-                    </ol>
-                  </div>
-                ))}
-            </div>
-          </section>
-        )}
 
       {/* レポート */}
       {live.hasReport && (live.reportLeadTitle || live.reportContent) && (
