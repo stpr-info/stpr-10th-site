@@ -97,10 +97,10 @@ function toLive(r: Record<string, unknown>): Live {
     hashtag: u(r.hashtag as string | null),
     description: u(r.description as string | null),
     note: u(r.note as string | null),
-    // 新・venues_json（取込の受け皿）が非空ならそちらを優先。無ければ旧 venues。
-    venues: jsonArr<Venue>(r.venues_json).length
-      ? jsonArr<Venue>(r.venues_json)
-      : jsonArr<Venue>(r.venues),
+    // 管理画面で編集する venues を優先。空なら取込用 venues_json をフォールバック。
+    venues: jsonArr<Venue>(r.venues).length
+      ? jsonArr<Venue>(r.venues)
+      : jsonArr<Venue>(r.venues_json),
     ticketLineup: jsonArr<TicketLineup>(r.ticket_lineup),
     ticketInfo: jsonArr<TicketInfo>(r.ticket_info),
     goodsImages: strArr(r.goods_images),
