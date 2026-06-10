@@ -14,6 +14,7 @@ import type {
   LiveGoodsInfo,
   VenueGoods,
   SetlistItem,
+  ShowSetlist,
   PpvInfo,
   LiveViewing,
 } from "@/data/lives"
@@ -107,6 +108,7 @@ function toLive(r: Record<string, unknown>): Live {
     goodsImages: strArr(r.goods_images),
     venueGoods: jsonArr<VenueGoods>(r.venue_goods),
     setlist: jsonArr<SetlistItem>(r.setlist),
+    showSetlists: jsonArr<ShowSetlist>(r.show_setlists),
     ppvInfo: jsonArr<PpvInfo>(r.ppv_info),
     liveViewing: jsonArr<LiveViewing>(r.live_viewing),
     fcInfo: strArr(r.fc_info),

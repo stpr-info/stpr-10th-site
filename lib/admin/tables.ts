@@ -210,7 +210,15 @@ export const TABLES: Record<string, TableConfig> = {
           { name: "saleEnd", label: "受付終了日時", type: "text", placeholder: "2026-05-10 23:59" },
           { name: "price", label: "価格", type: "text" },
           { name: "method", label: "販売方式", type: "text", placeholder: "抽選 / 先着" },
-          { name: "purchaseUrl", label: "購入URL", type: "text" },
+          {
+            name: "salesOutlets",
+            label: "チケット販売場所・購入URL",
+            type: "repeater",
+            itemFields: [
+              { name: "name", label: "販売場所", type: "text", placeholder: "STPRチケット / チケットぴあ 等" },
+              { name: "url", label: "購入URL", type: "text" },
+            ],
+          },
           {
             name: "venueDates",
             label: "会場・日付ごとの受付期間",
@@ -283,12 +291,31 @@ export const TABLES: Record<string, TableConfig> = {
       { name: "goods_images", label: "ライブグッズ画像（複数）", type: "image", multiple: true },
       {
         name: "setlist",
-        label: "セットリスト",
+        label: "セットリスト（基本）",
         type: "repeater",
         itemFields: [
           { name: "trackNumber", label: "曲番号", type: "number" },
           { name: "title", label: "曲名", type: "text" },
           { name: "memo", label: "備考", type: "text" },
+        ],
+      },
+      {
+        name: "show_setlists",
+        label: "公演ごとのセットリスト",
+        type: "repeater",
+        help: "公演ごとにセトリが変わる場合に使用。対象公演を選び、その公演のセトリを入力します。",
+        itemFields: [
+          { name: "showRef", label: "対象公演", type: "select", optionsSource: "shows" },
+          {
+            name: "setlist",
+            label: "セットリスト",
+            type: "repeater",
+            itemFields: [
+              { name: "trackNumber", label: "曲番号", type: "number" },
+              { name: "title", label: "曲名", type: "text" },
+              { name: "memo", label: "備考", type: "text" },
+            ],
+          },
         ],
       },
       { name: "official_site_url", label: "公式サイトURL", type: "text" },

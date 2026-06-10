@@ -75,6 +75,9 @@ export default async function LiveDetailPage({
   const venueSetlistNotes = live.venues.filter(
     (v) => v.setlistNotes && v.setlistNotes.trim().length > 0,
   )
+  const showSetlists = (live.showSetlists ?? []).filter(
+    (s) => s.showRef && s.setlist && s.setlist.length > 0,
+  )
 
   return (
     <div className="mx-auto max-w-6xl p-4 md:p-6">
@@ -348,8 +351,8 @@ export default async function LiveDetailPage({
         </EventSection>
       )}
 
-      {/* セットリスト（基本セトリ + 各会場の変更メモ）: アコーディオン */}
-      {(hasBaseSetlist || venueSetlistNotes.length > 0) && (
+      {/* セットリスト（基本セトリ + 公演ごと + 各会場の変更メモ）: アコーディオン */}
+      {(hasBaseSetlist || showSetlists.length > 0 || venueSetlistNotes.length > 0) && (
         <EventSection title="セトリ">
           {hasBaseSetlist && (
             <>
@@ -368,6 +371,29 @@ export default async function LiveDetailPage({
                   ))}
               </ol>
             </>
+          )}
+          {showSetlists.length > 0 && (
+            <div className="mt-4 space-y-3">
+              <p className="text-xs font-bold text-[#9a8aa0]">公演ごとのセットリスト</p>
+              {showSetlists.map((ss, i) => (
+                <div key={i} className={BLOCK}>
+                  <h4 className="mb-2 text-sm font-bold text-gold-700">{ss.showRef}</h4>
+                  <ol className="rounded-xl bg-gold-50/40 p-2">
+                    {[...ss.setlist!]
+                      .sort((a, b) => (a.trackNumber ?? 0) - (b.trackNumber ?? 0))
+                      .map((s, j) => (
+                        <li key={j} className="flex items-center gap-3 rounded p-1.5">
+                          <span className="w-8 shrink-0 text-right text-xs text-[#9a8aa0]">
+                            {s.trackNumber != null ? String(s.trackNumber).padStart(2, "0") : "－"}
+                          </span>
+                          <span className="flex-1 text-sm text-[#3a2540]">{s.title || "?"}</span>
+                          {s.memo && <span className="text-xs text-[#9a8aa0]">{s.memo}</span>}
+                        </li>
+                      ))}
+                  </ol>
+                </div>
+              ))}
+            </div>
           )}
           {venueSetlistNotes.length > 0 && (
             <div className="mt-4 space-y-2">
@@ -393,6 +419,7 @@ function TicketBlock({ ticket }: { ticket: TicketInfo }) {
   const status = getTicketStatus(ticket.saleStart, ticket.saleEnd)
   const isClosed = status === "受付終了"
   const isLottery = ticket.method?.includes("抽選")
+  const salesOutlets = (ticket.salesOutlets ?? []).filter((o) => o.url || o.name)
   const venueDates = (ticket.venueDates ?? []).filter(
     (vd) =>
       vd.venueName ||
@@ -487,15 +514,34 @@ function TicketBlock({ ticket }: { ticket: TicketInfo }) {
           </div>
         </details>
       )}
-      {ticket.purchaseUrl && !isClosed && (
-        <a
-          href={ticket.purchaseUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="mt-3 inline-block rounded-xl bg-gold-400 px-4 py-2 text-xs text-white transition-colors hover:bg-gold-500"
-        >
-          {isLottery ? "応募する →" : "購入する →"}
-        </a>
+      {salesOutlets.length > 0 && !isClosed && (
+        <div className="mt-3">
+          <p className="mb-1.5 text-xs text-[#9a8aa0]">
+            {isLottery ? "応募" : "購入"}：チケット販売場所
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {salesOutlets.map((o, i) =>
+              o.url ? (
+                <a
+                  key={i}
+                  href={o.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-block rounded-xl bg-gold-400 px-4 py-2 text-xs text-white transition-colors hover:bg-gold-500"
+                >
+                  {o.name || (isLottery ? "応募する" : "購入する")} →
+                </a>
+              ) : o.name ? (
+                <span
+                  key={i}
+                  className="inline-block rounded-xl bg-gold-50 px-4 py-2 text-xs text-[#6a5570]"
+                >
+                  {o.name}
+                </span>
+              ) : null,
+            )}
+          </div>
+        </div>
       )}
     </div>
   )

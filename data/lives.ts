@@ -17,6 +17,12 @@ export type Show = {
   setlist?: SetlistItem[]
 }
 
+/** 公演ごとのセットリスト（会場・日付・部ごとにセトリが変わる場合） */
+export type ShowSetlist = {
+  showRef?: string // 対象公演（venues の各 shows を「会場 日付 部」で参照）
+  setlist?: SetlistItem[]
+}
+
 /** 会場公演 */
 export type Venue = {
   venueName: string
@@ -43,6 +49,12 @@ export type TicketLineup = {
   price?: string
 }
 
+/** チケット販売場所と購入URL（STPRチケット / チケットぴあ 等） */
+export type TicketSalesOutlet = {
+  name?: string // 販売場所（例: STPRチケット / チケットぴあ）
+  url?: string // 購入URL
+}
+
 /** チケット種別（複数対応） */
 export type TicketInfo = {
   ticketType: string
@@ -54,7 +66,7 @@ export type TicketInfo = {
   price?: string
   method?: string // "抽選" / "先着" 等
   info?: string
-  purchaseUrl?: string
+  salesOutlets?: TicketSalesOutlet[] // チケット販売場所・購入URL（複数）
   venueDates?: TicketVenueDate[] // 会場・日付ごとの受付期間
 }
 
@@ -134,7 +146,8 @@ export type Live = {
   goodsInfo?: LiveGoodsInfo[]
   goodsImages?: string[] // ライブグッズ画像（公開URL[]）
   venueGoods?: VenueGoods[] // 会場ごとのグッズ販売情報
-  setlist?: SetlistItem[] // セットリスト
+  setlist?: SetlistItem[] // 基本セットリスト
+  showSetlists?: ShowSetlist[] // 公演ごとのセットリスト
   ppvInfo?: PpvInfo[]
   liveViewing?: LiveViewing[]
   fcInfo?: string[] // 画像URL[]
