@@ -89,11 +89,19 @@ export type LiveViewing = {
 export type Live = {
   slug: string
   title: string
+  /** 所属グループ識別子（data/groups.ts の GroupSlug）。公開 /live の絞り込みに使う。 */
+  groupSlug?: string
+  subtitle?: string
+  tourName?: string
   liveType?: string
   status: LiveStatus
   periodStart?: string // ISO datetime
   periodEnd?: string
   keyVisual?: string
+  /** 公開フラグ。false で公開一覧から除外（default true）。 */
+  isActive?: boolean
+  /** STPR Family / すとふぇす 等の合同ライブ。 */
+  isFamily?: boolean
   members?: string[] // メンバーID
   hashtag?: string
   description?: string

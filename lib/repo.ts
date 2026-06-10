@@ -67,11 +67,16 @@ function toLive(r: Record<string, unknown>): Live {
   return {
     slug: String(r.slug),
     title: String(r.title),
+    groupSlug: u(r.group_slug as string | null),
+    subtitle: u(r.subtitle as string | null),
+    tourName: u(r.tour_name as string | null),
     liveType: u(r.live_type as string | null),
     status: (r.status as LiveStatus) ?? "coming",
     periodStart: u(r.period_start as string | null),
     periodEnd: u(r.period_end as string | null),
     keyVisual: u(r.key_visual as string | null),
+    isActive: u(r.is_active as boolean | null),
+    isFamily: u(r.is_family as boolean | null),
     members: strArr(r.members),
     hashtag: u(r.hashtag as string | null),
     description: u(r.description as string | null),
@@ -248,6 +253,20 @@ export async function getLiveBySlug(slug: string): Promise<Live | undefined> {
     .maybeSingle()
   if (error || !data) return undefined
   return toLive(data as Row)
+}
+
+/**
+ * 公開 /live 用。is_active=false を除外したライブを新しい順で返す。
+ * groupSlug を渡すとそのグループだけに絞り込む。
+ */
+export async function getActiveLives(groupSlug?: string): Promise<Live[]> {
+  const lives = (await getLives()).filter((l) => l.isActive !== false)
+  return groupSlug ? lives.filter((l) => l.groupSlug === groupSlug) : lives
+}
+
+/** 指定グループの公開ライブを新しい順で返す。 */
+export async function getLivesForGroup(groupSlug: string): Promise<Live[]> {
+  return getActiveLives(groupSlug)
 }
 
 // === グッズ ===

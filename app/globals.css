@@ -36,6 +36,19 @@
   --color-pearl: #fff8fb;
   --color-ivory: #fdf4f0;
 
+  /* STPR Blue アクセント（公開 /live ページ用・非公式ファンサイト互換トークン） */
+  --color-accent: #005397;
+  --color-accent-50: #e6eef5;
+  --color-accent-100: #b8d0e5;
+  --color-accent-200: #8ab2d4;
+  --color-accent-300: #5c93c3;
+  --color-accent-400: #2e75b2;
+  --color-accent-500: #1463a4;
+  --color-accent-600: #005397;
+  --color-accent-700: #00427a;
+  --color-accent-800: #00315c;
+  --color-accent-900: #00203e;
+
   /* メンバーカラー */
   --color-rinu: #c0392b;
   --color-root: #d4a017;

@@ -68,7 +68,24 @@ export const TABLES: Record<string, TableConfig> = {
     listColumns: ["title", "live_type", "status"],
     fields: [
       { name: "slug", label: "スラッグ（URL）", type: "text", required: true, placeholder: "anniv-tour-2026" },
+      {
+        name: "group_slug",
+        label: "グループ",
+        type: "select",
+        required: true,
+        options: ["Strawberry_Prince", "knightX", "amptak", "Meteorites", "SneakerStep", "True_Lip"],
+        optionLabels: {
+          Strawberry_Prince: "すとぷり",
+          knightX: "騎士X",
+          amptak: "AMPTAK×COLORS",
+          Meteorites: "Meteorites",
+          SneakerStep: "すにすて",
+          True_Lip: "とぅるりぷ",
+        },
+      },
       { name: "title", label: "タイトル", type: "text", required: true },
+      { name: "subtitle", label: "サブタイトル", type: "text" },
+      { name: "tour_name", label: "ツアー名", type: "text" },
       {
         name: "live_type",
         label: "ライブ種別",
@@ -76,6 +93,8 @@ export const TABLES: Record<string, TableConfig> = {
         options: ["ワンマン", "対バン", "フェス", "配信ライブ", "イベント出演", "その他"],
       },
       { name: "status", label: "ステータス", type: "select", options: ["coming", "ongoing", "finished"], required: true },
+      { name: "is_active", label: "公開する", type: "boolean", help: "オフにすると公開 /live 一覧から除外されます。" },
+      { name: "is_family", label: "STPR Family / 合同ライブ", type: "boolean" },
       { name: "period_start", label: "開始日時", type: "text", placeholder: "2026-06-04 もしくは 2026-06-04T18:00", help: "ISO形式（datetime）" },
       { name: "period_end", label: "終了日時", type: "text", placeholder: "2026-06-06" },
       { name: "key_visual", label: "キービジュアル画像", type: "image", help: "画像ファイルを選択するとアップロードして公開URLを自動入力します。" },
