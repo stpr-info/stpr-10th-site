@@ -122,7 +122,8 @@ export const TABLES: Record<string, TableConfig> = {
         type: "multiselect",
         options: ["ワンマン", "ツアー", "フェス", "対バン", "配信ライブ", "オンライン", "リリイベ", "イベント出演", "その他"],
       },
-      { name: "status", label: "ステータス", type: "select", options: ["coming", "ongoing", "finished"], required: true },
+      // ステータスは period_start / period_end から自動計算（フォーム非表示・保存時に自動上書き）。
+      { name: "status", label: "ステータス", type: "select", options: ["coming", "ongoing", "finished"] },
       { name: "is_active", label: "公開する", type: "boolean", help: "オフにすると公開 /live 一覧から除外されます。" },
       { name: "is_family", label: "STPR Family / 合同ライブ", type: "boolean" },
       { name: "period_start", label: "開始日時", type: "text", placeholder: "2026-06-04 もしくは 2026-06-04T18:00", help: "ISO形式（datetime）" },

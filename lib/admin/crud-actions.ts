@@ -5,6 +5,14 @@ import { redirect } from "next/navigation"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { getTableConfig, type Field } from "@/lib/admin/tables"
 import { assertAdmin } from "@/lib/admin/auth-actions"
+import { getLiveStatus } from "@/lib/utils"
+
+/** lives の status を period_start / period_end から自動計算してレコードに設定する。 */
+function applyLiveStatus(record: Record<string, unknown>): void {
+  const ps = typeof record.period_start === "string" ? record.period_start : undefined
+  const pe = typeof record.period_end === "string" ? record.period_end : undefined
+  record.status = getLiveStatus(ps, pe)
+}
 
 export type FormState = { error?: string }
 
@@ -139,8 +147,10 @@ export async function createRecord(
 
   // lives は管理画面のスコープで is_10th を自動設定する
   // （/admin=非公式ファンサイト=false / /stpr-10th-anniversary/admin=10周年=true）。
+  // status は period_start / period_end から自動計算して上書きする。
   if (tableKey === "lives") {
     record.is_10th = basePath.startsWith("/stpr-10th-anniversary")
+    applyLiveStatus(record)
   }
 
   const supabase = createAdminClient()
@@ -169,8 +179,10 @@ export async function updateRecord(
   }
 
   // lives は管理画面のスコープで is_10th を固定する（編集でも別スコープへ移動させない）。
+  // status は period_start / period_end から自動計算して上書きする。
   if (tableKey === "lives") {
     record.is_10th = basePath.startsWith("/stpr-10th-anniversary")
+    applyLiveStatus(record)
   }
 
   const supabase = createAdminClient()

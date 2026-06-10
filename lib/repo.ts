@@ -5,7 +5,7 @@
 // メンバー（MEMBERS）は固定データのため data/members.ts を継続使用する。
 
 import { createBrowserClient } from "@/lib/supabase/client"
-import { resolveYoutubeThumbnail } from "@/lib/utils"
+import { getLiveStatus, resolveYoutubeThumbnail } from "@/lib/utils"
 import type {
   Live,
   Venue,
@@ -16,7 +16,6 @@ import type {
   SetlistItem,
   PpvInfo,
   LiveViewing,
-  LiveStatus,
 } from "@/data/lives"
 import type { Goods } from "@/data/goods"
 import type {
@@ -81,7 +80,11 @@ function toLive(r: Record<string, unknown>): Live {
       : r.live_type
         ? [String(r.live_type)]
         : [],
-    status: (r.status as LiveStatus) ?? "coming",
+    // ステータスは保存値を使わず period_start / period_end から都度計算する。
+    status: getLiveStatus(
+      u(r.period_start as string | null),
+      u(r.period_end as string | null),
+    ),
     periodStart: u(r.period_start as string | null),
     periodEnd: u(r.period_end as string | null),
     // 新・key_visual_url 優先。無ければ旧 key_visual。

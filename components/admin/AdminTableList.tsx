@@ -7,7 +7,7 @@ import StatusBadge from "@/components/common/StatusBadge"
 import TypeBadge from "@/components/common/TypeBadge"
 import { getTableConfig, type Field } from "@/lib/admin/tables"
 import { createAdminClient } from "@/lib/supabase/admin"
-import { formatDateDot } from "@/lib/utils"
+import { formatDateDot, getLiveStatus } from "@/lib/utils"
 import type { LiveStatus } from "@/data/lives"
 
 type Props = {
@@ -80,6 +80,17 @@ export default async function AdminTableList({ basePath, table, label }: Props) 
     else rows = (data ?? []) as Record<string, unknown>[]
   } catch (e) {
     loadError = e instanceof Error ? e.message : "読み込みに失敗しました。"
+  }
+
+  // lives の status は保存値ではなく period_start / period_end から都度計算して表示する。
+  if (table === "lives") {
+    rows = rows.map((r) => ({
+      ...r,
+      status: getLiveStatus(
+        typeof r.period_start === "string" ? r.period_start : undefined,
+        typeof r.period_end === "string" ? r.period_end : undefined,
+      ),
+    }))
   }
 
   return (
