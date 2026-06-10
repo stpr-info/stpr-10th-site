@@ -306,12 +306,18 @@ export const TABLES: Record<string, TableConfig> = {
         name: "show_setlists",
         label: "公演ごとのセットリスト",
         type: "repeater",
-        help: "公演ごとにセトリが変わる場合に使用。対象公演を選び、「基本セトリをコピー」で基本セットリストを取り込んでから、違う曲だけ直せます。",
+        help: "公演ごとにセトリが変わる場合に使用。①ちょっとした変更や時間押しのカットは「変更点メモ」だけでOK（基本セトリ＋メモを表示）。②大きく変わる場合は「基本セトリをコピー」して曲を直してください。",
         itemFields: [
           { name: "showRef", label: "対象公演", type: "select", optionsSource: "shows" },
           {
+            name: "note",
+            label: "変更点メモ（これだけでもOK）",
+            type: "textarea",
+            placeholder: "例: 時間押しでM10カット / アンコールで〇〇を追加 / M5を△△に変更",
+          },
+          {
             name: "setlist",
-            label: "セットリスト（基本をコピーして一部だけ変更可）",
+            label: "セットリスト（大きく変わる場合のみ・基本をコピーして編集）",
             type: "repeater",
             copyFrom: "setlist",
             itemFields: [

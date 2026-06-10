@@ -151,7 +151,9 @@ export default async function LiveDetailPage({ params }: Params) {
       {/* セットリスト（基本 + 公演ごとをタブ切替） */}
       {((live.setlist && live.setlist.length > 0) ||
         (live.showSetlists ?? []).some(
-          (ss) => ss.showRef && ss.setlist && ss.setlist.length > 0,
+          (ss) =>
+            ss.showRef &&
+            ((ss.setlist && ss.setlist.length > 0) || (ss.note && ss.note.trim().length > 0)),
         )) && (
         <section className="mt-8">
           <h2 className="mb-3 flex items-center gap-2 text-base font-bold text-gray-900">

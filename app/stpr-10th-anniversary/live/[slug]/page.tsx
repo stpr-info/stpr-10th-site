@@ -77,7 +77,9 @@ export default async function LiveDetailPage({
     (v) => v.setlistNotes && v.setlistNotes.trim().length > 0,
   )
   const showSetlists = (live.showSetlists ?? []).filter(
-    (s) => s.showRef && s.setlist && s.setlist.length > 0,
+    (s) =>
+      s.showRef &&
+      ((s.setlist && s.setlist.length > 0) || (s.note && s.note.trim().length > 0)),
   )
 
   return (

@@ -7,7 +7,16 @@ type Variant = "gold" | "plain"
 
 const THEME: Record<
   Variant,
-  { active: string; idle: string; list: string; num: string; title: string; memo: string }
+  {
+    active: string
+    idle: string
+    list: string
+    num: string
+    title: string
+    memo: string
+    note: string
+    hint: string
+  }
 > = {
   gold: {
     active: "bg-gold-400 text-white",
@@ -16,6 +25,8 @@ const THEME: Record<
     num: "text-[#9a8aa0]",
     title: "text-[#3a2540]",
     memo: "text-[#9a8aa0]",
+    note: "rounded-lg border border-gold-200 bg-gold-50/70 px-3 py-2 text-xs text-[#6a5570]",
+    hint: "text-[#9a8aa0]",
   },
   plain: {
     active: "bg-accent-600 text-white",
@@ -24,14 +35,24 @@ const THEME: Record<
     num: "text-accent-600",
     title: "text-gray-800",
     memo: "text-gray-400",
+    note: "rounded-lg border border-accent-100 bg-accent-50/60 px-3 py-2 text-xs text-gray-600",
+    hint: "text-gray-400",
   },
 }
 
-type Tab = { key: string; label: string; items: SetlistItem[] }
+type Tab = {
+  key: string
+  label: string
+  items: SetlistItem[]
+  note?: string
+  usesBase: boolean // 自前のセトリが無く基本セトリを流用している
+}
 
 /**
  * 基本セトリ＋公演ごとのセトリをタブで切り替えて 1 つだけ表示する。
- * 公演ごとのセトリが多くても縦積みにならず見やすい。
+ * 公演ごとは「変更点メモのみ」「一部差し替え」「完全別セトリ」のどれにも対応：
+ *  - 自前のセトリがあればそれを表示（無ければ基本セトリを流用）
+ *  - 変更点メモがあれば曲リストの上に表示（時間押しのカット等）
  */
 export default function SetlistSelector({
   base,
@@ -43,19 +64,30 @@ export default function SetlistSelector({
   variant?: Variant
 }) {
   const t = THEME[variant]
+  const hasBase = !!(base && base.length > 0)
+
   const tabs: Tab[] = []
-  if (base && base.length > 0) tabs.push({ key: "__base__", label: "基本セトリ", items: base })
+  if (hasBase) tabs.push({ key: "__base__", label: "基本セトリ", items: base!, usesBase: false })
   for (const ss of showSetlists ?? []) {
-    if (ss.showRef && ss.setlist && ss.setlist.length > 0) {
-      tabs.push({ key: ss.showRef, label: ss.showRef, items: ss.setlist })
-    }
+    const own = ss.setlist && ss.setlist.length > 0 ? ss.setlist : undefined
+    const note = ss.note?.trim() || undefined
+    // 公演が指定されていて、独自セトリか変更点メモのどちらかがある場合のみタブ化。
+    if (!ss.showRef || (!own && !note)) continue
+    tabs.push({
+      key: ss.showRef,
+      label: ss.showRef,
+      items: own ?? base ?? [],
+      note,
+      usesBase: !own,
+    })
   }
 
   const [active, setActive] = useState(0)
   if (tabs.length === 0) return null
 
   const idx = Math.min(active, tabs.length - 1)
-  const sorted = [...tabs[idx].items].sort((a, b) => (a.trackNumber ?? 0) - (b.trackNumber ?? 0))
+  const current = tabs[idx]
+  const sorted = [...current.items].sort((a, b) => (a.trackNumber ?? 0) - (b.trackNumber ?? 0))
 
   return (
     <div>
@@ -75,17 +107,33 @@ export default function SetlistSelector({
           ))}
         </div>
       )}
-      <ol className={t.list}>
-        {sorted.map((s, j) => (
-          <li key={j} className="flex items-center gap-3 rounded p-1.5">
-            <span className={`w-8 shrink-0 text-right text-xs ${t.num}`}>
-              {s.trackNumber != null ? String(s.trackNumber).padStart(2, "0") : "－"}
-            </span>
-            <span className={`flex-1 text-sm ${t.title}`}>{s.title || "?"}</span>
-            {s.memo && <span className={`text-xs ${t.memo}`}>{s.memo}</span>}
-          </li>
-        ))}
-      </ol>
+
+      {current.note && (
+        <p className={`mb-2 ${t.note}`}>
+          <span className="font-bold">変更点：</span>
+          <span className="whitespace-pre-wrap">{current.note}</span>
+        </p>
+      )}
+
+      {current.usesBase && sorted.length > 0 && (
+        <p className={`mb-1.5 text-[11px] ${t.hint}`}>
+          ※ 基本セトリ通り{current.note ? "（上記の変更点あり）" : ""}
+        </p>
+      )}
+
+      {sorted.length > 0 && (
+        <ol className={t.list}>
+          {sorted.map((s, j) => (
+            <li key={j} className="flex items-center gap-3 rounded p-1.5">
+              <span className={`w-8 shrink-0 text-right text-xs ${t.num}`}>
+                {s.trackNumber != null ? String(s.trackNumber).padStart(2, "0") : "－"}
+              </span>
+              <span className={`flex-1 text-sm ${t.title}`}>{s.title || "?"}</span>
+              {s.memo && <span className={`text-xs ${t.memo}`}>{s.memo}</span>}
+            </li>
+          ))}
+        </ol>
+      )}
     </div>
   )
 }

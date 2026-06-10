@@ -20,7 +20,8 @@ export type Show = {
 /** 公演ごとのセットリスト（会場・日付・部ごとにセトリが変わる場合） */
 export type ShowSetlist = {
   showRef?: string // 対象公演（venues の各 shows を「会場 日付 部」で参照）
-  setlist?: SetlistItem[]
+  note?: string // 変更点メモ（例: 時間押しでM10カット / アンコールで〇〇追加）。セトリ未入力なら基本セトリ＋このメモを表示
+  setlist?: SetlistItem[] // この公演のセトリ（大きく変わる場合のみ。未入力なら基本セトリを使用）
 }
 
 /** 会場公演 */
