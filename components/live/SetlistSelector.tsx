@@ -87,7 +87,23 @@ export default function SetlistSelector({
 
   const idx = Math.min(active, tabs.length - 1)
   const current = tabs[idx]
-  const sorted = [...current.items].sort((a, b) => (a.trackNumber ?? 0) - (b.trackNumber ?? 0))
+
+  // 区分（section）ごとにグループ化（未指定=本編）。出現順を維持し、各区分内は曲番号順。
+  const order: string[] = []
+  const groups: Record<string, SetlistItem[]> = {}
+  for (const it of current.items) {
+    const sec = (it.section && it.section.trim()) || "本編"
+    if (!groups[sec]) {
+      groups[sec] = []
+      order.push(sec)
+    }
+    groups[sec].push(it)
+  }
+  for (const sec of order) {
+    groups[sec].sort((a, b) => (a.trackNumber ?? 0) - (b.trackNumber ?? 0))
+  }
+  const multiSection = order.length > 1
+  const hasItems = current.items.length > 0
 
   return (
     <div>
@@ -115,24 +131,35 @@ export default function SetlistSelector({
         </p>
       )}
 
-      {current.usesBase && sorted.length > 0 && (
+      {current.usesBase && hasItems && (
         <p className={`mb-1.5 text-[11px] ${t.hint}`}>
           ※ 基本セトリ通り{current.note ? "（上記の変更点あり）" : ""}
         </p>
       )}
 
-      {sorted.length > 0 && (
-        <ol className={t.list}>
-          {sorted.map((s, j) => (
-            <li key={j} className="flex items-center gap-3 rounded p-1.5">
-              <span className={`w-8 shrink-0 text-right text-xs ${t.num}`}>
-                {s.trackNumber != null ? String(s.trackNumber).padStart(2, "0") : "－"}
-              </span>
-              <span className={`flex-1 text-sm ${t.title}`}>{s.title || "?"}</span>
-              {s.memo && <span className={`text-xs ${t.memo}`}>{s.memo}</span>}
-            </li>
+      {hasItems && (
+        <div className="space-y-3">
+          {order.map((sec) => (
+            <div key={sec}>
+              {multiSection && (
+                <p className={`mb-1 text-[11px] font-bold ${t.hint}`}>{sec}</p>
+              )}
+              <ol className={t.list}>
+                {groups[sec].map((s, j) => (
+                  <li key={j} className="flex items-center gap-3 rounded p-1.5">
+                    <span className={`w-8 shrink-0 text-right text-xs ${t.num}`}>
+                      {typeof s.trackNumber === "number"
+                        ? String(s.trackNumber).padStart(2, "0")
+                        : "－"}
+                    </span>
+                    <span className={`flex-1 text-sm ${t.title}`}>{s.title || "?"}</span>
+                    {s.memo && <span className={`text-xs ${t.memo}`}>{s.memo}</span>}
+                  </li>
+                ))}
+              </ol>
+            </div>
           ))}
-        </ol>
+        </div>
       )}
     </div>
   )

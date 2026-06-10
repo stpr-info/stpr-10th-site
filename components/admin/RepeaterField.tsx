@@ -279,6 +279,7 @@ function SubFieldInput({
             onChange={(r) => onChange(r)}
             itemFields={field.itemFields ?? []}
             table={table}
+            bulkPaste={field.bulkPaste}
           />
         </div>
       </div>
@@ -373,17 +374,120 @@ function SubFieldInput({
   )
 }
 
+// ── セトリ一括貼り付け（テキスト → 行） ───────────────────────────
+const ENCORE_RE =
+  /^[\s\-ー―－—~〜=＝・]*(?:アンコール|ｱﾝｺｰﾙ|encore|en|ec)[\s\-ー―－—~〜=＝・]*$/i
+
+/** "曲名 / 担当" を分割（括弧内の / は無視。最後の括弧外 / で分割）。 */
+function splitTitleMemo(s: string): [string, string] {
+  let depth = 0
+  let idx = -1
+  for (let i = 0; i < s.length; i++) {
+    const c = s[i]
+    if (c === "(" || c === "（") depth++
+    else if (c === ")" || c === "）") depth = Math.max(0, depth - 1)
+    else if (depth === 0 && c === "/" && s[i - 1] === " " && s[i + 1] === " ") idx = i
+  }
+  if (idx >= 0) return [s.slice(0, idx).trim(), s.slice(idx + 1).trim()]
+  return [s.trim(), ""]
+}
+
+/** 貼り付けセトリを行（trackNumber / title / memo / section）へ変換。 */
+function parseSetlist(text: string): Row[] {
+  const out: Row[] = []
+  let section = ""
+  for (const raw of text.split(/\r?\n/)) {
+    const line = raw.trim()
+    if (!line) continue
+    if (ENCORE_RE.test(line)) {
+      section = "アンコール"
+      continue
+    }
+    const m = /^(\d{1,3})[.\．。、:：)）]?\s*(.+)$/.exec(line)
+    const trackNumber: number | "" = m ? Number(m[1]) : ""
+    const rest = m ? m[2] : line
+    const [title, memo] = splitTitleMemo(rest)
+    const row: Row = { trackNumber, title, memo }
+    if (section) row.section = section
+    out.push(row)
+  }
+  return out
+}
+
+/** セトリ貼り付け入力ボックス（開閉式）。 */
+function SetlistPasteBox({
+  onApply,
+}: {
+  onApply: (rows: Row[], mode: "replace" | "append") => void
+}) {
+  const [text, setText] = useState("")
+  const [open, setOpen] = useState(false)
+  const apply = (mode: "replace" | "append") => {
+    const parsed = parseSetlist(text)
+    if (parsed.length === 0) {
+      window.alert("解析できる行がありませんでした。")
+      return
+    }
+    onApply(parsed, mode)
+    setText("")
+    setOpen(false)
+  }
+  return (
+    <div className="rounded-lg border border-dashed border-gold-300 bg-gold-50/40 p-2">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className="text-[11px] font-bold text-gold-700"
+      >
+        {open ? "▲ セトリ一括貼り付けを閉じる" : "▼ セトリを貼り付けて一括入力"}
+      </button>
+      {open && (
+        <div className="mt-2 flex flex-col gap-2">
+          <textarea
+            rows={6}
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            placeholder={"1.スキスキ星人\n7.GO GO CRAZY / 騎士X\nーアンコールー\n1.PEACE"}
+            className={inputCls}
+          />
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => apply("replace")}
+              className="rounded-full bg-gold-400 px-4 py-1 text-[11px] text-white transition-colors hover:bg-gold-500"
+            >
+              解析して置き換え
+            </button>
+            <button
+              type="button"
+              onClick={() => apply("append")}
+              className="rounded-full border border-gold-300 bg-white px-4 py-1 text-[11px] text-gold-700 transition-colors hover:bg-gold-50"
+            >
+              末尾に追加
+            </button>
+          </div>
+          <p className="text-[10px] text-[#9a8aa0]">
+            「1.曲名 / 担当」形式。括弧内の「/」は分割しません。「ーアンコールー」の行で区分＝アンコールに。
+          </p>
+        </div>
+      )}
+    </div>
+  )
+}
+
 /** 行の集合を編集する制御コンポーネント（ネストでも再利用）。 */
 function RowsEditor({
   rows,
   onChange,
   itemFields,
   table,
+  bulkPaste,
 }: {
   rows: Row[]
   onChange: (rows: Row[]) => void
   itemFields: SubField[]
   table: string
+  bulkPaste?: boolean
 }) {
   const update = (i: number, name: string, val: unknown) => {
     onChange(rows.map((r, idx) => (idx === i ? { ...r, [name]: val } : r)))
@@ -393,6 +497,13 @@ function RowsEditor({
 
   return (
     <div className="flex flex-col gap-3">
+      {bulkPaste && (
+        <SetlistPasteBox
+          onApply={(parsed, mode) =>
+            onChange(mode === "replace" ? parsed : [...rows, ...parsed])
+          }
+        />
+      )}
       {rows.map((row, i) => (
         <div
           key={i}
@@ -444,11 +555,13 @@ export default function RepeaterField({
   table,
   itemFields,
   initialValue,
+  bulkPaste,
 }: {
   name: string
   table: string
   itemFields: SubField[]
   initialValue?: unknown
+  bulkPaste?: boolean
 }) {
   const [rows, setRows] = useState<Row[]>(
     Array.isArray(initialValue) ? (initialValue as Row[]) : [],
@@ -471,6 +584,7 @@ export default function RepeaterField({
         onChange={setRows}
         itemFields={itemFields}
         table={table}
+        bulkPaste={bulkPaste}
       />
       <input type="hidden" name={name} value={JSON.stringify(cleaned)} />
     </div>

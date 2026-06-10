@@ -168,6 +168,7 @@ export default function RecordForm({
                 table={table}
                 itemFields={field.itemFields ?? []}
                 initialValue={value}
+                bulkPaste={field.bulkPaste}
               />
             )}
 

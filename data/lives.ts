@@ -6,7 +6,9 @@ export type LiveStatus = "coming" | "ongoing" | "finished"
 export type SetlistItem = {
   trackNumber?: number
   title?: string
-  memo?: string
+  memo?: string // "/ 騎士X" のような担当・グループ等
+  section?: string // 本編（未指定）/ アンコール 等。一括貼り付けで自動設定
+  songSlug?: string // 将来の楽曲ひも付け用（任意）
 }
 
 /** 個別公演 */

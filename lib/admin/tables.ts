@@ -43,6 +43,8 @@ export type SubField = {
   /** type:"repeater" で、同一フォームの別 repeater（hidden input 名）の現在の行を
    *  コピーするボタンを表示する。例: "setlist"（基本セトリ）→ 公演ごとのセトリへ。 */
   copyFrom?: string
+  /** type:"repeater" で、セトリ一括貼り付け（テキスト→行）入力を表示する。 */
+  bulkPaste?: boolean
 }
 
 export type Field = {
@@ -58,6 +60,8 @@ export type Field = {
   /** type:"image" で複数枚アップロードを許可（保存は URL の配列 → text[]）。
    *  メインビジュアル/サムネイル等の1枚画像では指定しない。 */
   multiple?: boolean
+  /** type:"repeater" で、セトリ一括貼り付け（テキスト→行）入力を表示する。 */
+  bulkPaste?: boolean
 }
 
 export type TableConfig = {
@@ -332,10 +336,13 @@ export const TABLES: Record<string, TableConfig> = {
         name: "setlist",
         label: "セットリスト（基本）",
         type: "repeater",
+        bulkPaste: true,
+        help: "「1.曲名 / 担当」形式のセトリを貼り付けて一括入力できます。「ーアンコールー」で区分を自動判定。",
         itemFields: [
           { name: "trackNumber", label: "曲番号", type: "number" },
           { name: "title", label: "曲名", type: "text" },
-          { name: "memo", label: "備考", type: "text" },
+          { name: "memo", label: "担当・備考", type: "text", placeholder: "騎士X / AMPTAK 等" },
+          { name: "section", label: "区分", type: "text", placeholder: "本編 / アンコール" },
         ],
       },
       {
@@ -353,13 +360,15 @@ export const TABLES: Record<string, TableConfig> = {
           },
           {
             name: "setlist",
-            label: "セットリスト（大きく変わる場合のみ・基本をコピーして編集）",
+            label: "セットリスト（大きく変わる場合のみ・基本をコピー or 貼り付け）",
             type: "repeater",
             copyFrom: "setlist",
+            bulkPaste: true,
             itemFields: [
               { name: "trackNumber", label: "曲番号", type: "number" },
               { name: "title", label: "曲名", type: "text" },
-              { name: "memo", label: "備考", type: "text" },
+              { name: "memo", label: "担当・備考", type: "text", placeholder: "騎士X / AMPTAK 等" },
+              { name: "section", label: "区分", type: "text", placeholder: "本編 / アンコール" },
             ],
           },
         ],
