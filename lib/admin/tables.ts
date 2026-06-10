@@ -223,6 +223,12 @@ export const TABLES: Record<string, TableConfig> = {
           { name: "price", label: "価格", type: "text" },
           { name: "method", label: "販売方式", type: "text", placeholder: "抽選 / 先着" },
           {
+            name: "info",
+            label: "補足（販売場所・対象公演など自由記述）",
+            type: "textarea",
+            placeholder: "例）STPR TICKET：名古屋公演・大阪公演\nプレイガイド：8/17(月)大阪公演",
+          },
+          {
             name: "salesOutlets",
             label: "チケット販売場所・購入URL",
             type: "repeater",
