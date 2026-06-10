@@ -28,10 +28,19 @@ export type Venue = {
   setlistNotes?: string // この会場でのセトリ変更メモ
 }
 
+/** チケット種別ごとの 会場・日付別 受付期間 */
+export type TicketVenueDate = {
+  venueName?: string // 会場名（venues に登録された会場名から選択）
+  date?: string // チケットの対象日付（公演日ではない）
+  saleStart?: string // 受付開始日時
+  saleEnd?: string // 受付終了日時
+}
+
 /** チケットラインナップ（名称・価格の早見） */
 export type TicketLineup = {
   ticketName?: string
   price?: string
+  venueDates?: TicketVenueDate[] // 会場・日付ごとの受付期間
 }
 
 /** チケット種別（複数対応） */

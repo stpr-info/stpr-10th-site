@@ -28,6 +28,61 @@ function isEmptyRow(row: Row): boolean {
 const inputCls =
   "rounded-lg border border-gold-200 bg-white px-3 py-2 text-sm outline-none transition-colors focus:border-gold-400 focus:ring-2 focus:ring-gold-100"
 
+/** 同一フォームの「会場公演」repeater（hidden input name="venues"）から
+ *  登録済みの会場名を読み出す。フォーカス時に最新状態を取り直す。 */
+function readVenueNames(): string[] {
+  if (typeof document === "undefined") return []
+  const el = document.querySelector<HTMLInputElement>('input[name="venues"]')
+  if (!el?.value) return []
+  try {
+    const rows = JSON.parse(el.value)
+    if (!Array.isArray(rows)) return []
+    return Array.from(
+      new Set(
+        rows
+          .map((r) => (r && typeof r.venueName === "string" ? r.venueName.trim() : ""))
+          .filter((v): v is string => v.length > 0),
+      ),
+    )
+  } catch {
+    return []
+  }
+}
+
+/** 会場名セレクト（venues repeater から動的に選択肢を供給）。 */
+function VenueNameSelect({
+  field,
+  value,
+  onChange,
+}: {
+  field: SubField
+  value: unknown
+  onChange: (v: unknown) => void
+}) {
+  const [names, setNames] = useState<string[]>(() => readVenueNames())
+  const current = typeof value === "string" ? value : ""
+  // 保存済みの値が候補に無くても選択肢に残す（会場名変更時のデータ保全）。
+  const options = current && !names.includes(current) ? [current, ...names] : names
+  return (
+    <label className="flex flex-col gap-1">
+      <span className="text-[11px] font-medium text-gold-700">{field.label}</span>
+      <select
+        value={current}
+        onFocus={() => setNames(readVenueNames())}
+        onChange={(e) => onChange(e.target.value)}
+        className={inputCls}
+      >
+        <option value="">（未選択）</option>
+        {options.map((opt) => (
+          <option key={opt} value={opt}>
+            {opt}
+          </option>
+        ))}
+      </select>
+    </label>
+  )
+}
+
 /** サブ項目 1 つの入力 UI。 */
 function SubFieldInput({
   field,
@@ -120,6 +175,9 @@ function SubFieldInput({
   }
 
   if (field.type === "select") {
+    if (field.optionsSource === "venues") {
+      return <VenueNameSelect field={field} value={value} onChange={onChange} />
+    }
     return (
       <label className="flex flex-col gap-1">
         <span className="text-[11px] font-medium text-gold-700">{field.label}</span>

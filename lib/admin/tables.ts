@@ -31,7 +31,10 @@ export type SubField = {
   name: string
   label: string
   type: SubFieldType
-  options?: string[] // select 用
+  options?: string[] // select 用（静的）
+  /** type:"select" で選択肢を動的に供給する。"venues" は同一フォームの
+   *  「会場公演」repeater に登録済みの会場名を選択肢にする。 */
+  optionsSource?: "venues"
   placeholder?: string
   itemFields?: SubField[] // ネスト repeater 用
   /** type:"image" で複数枚アップロードを許可（行内 jsonb に URL 配列で保存）。 */
@@ -177,6 +180,17 @@ export const TABLES: Record<string, TableConfig> = {
         itemFields: [
           { name: "ticketName", label: "チケット名", type: "text" },
           { name: "price", label: "価格", type: "text", placeholder: "¥9,000" },
+          {
+            name: "venueDates",
+            label: "会場・日付ごとの受付期間",
+            type: "repeater",
+            itemFields: [
+              { name: "venueName", label: "会場名", type: "select", optionsSource: "venues" },
+              { name: "date", label: "対象日付", type: "text", placeholder: "2026-06-04" },
+              { name: "saleStart", label: "受付開始日時", type: "text", placeholder: "2026-05-01 10:00" },
+              { name: "saleEnd", label: "受付終了日時", type: "text", placeholder: "2026-05-10 23:59" },
+            ],
+          },
         ],
       },
       {

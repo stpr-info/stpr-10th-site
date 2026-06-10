@@ -13,6 +13,7 @@ import type {
   Venue,
   Show,
   TicketInfo,
+  TicketLineup,
   LiveGoodsInfo,
 } from "@/data/lives"
 import SafeImage from "@/components/common/SafeImage"
@@ -201,15 +202,12 @@ export default async function LiveDetailPage({
         </div>
       )}
 
-      {/* チケット情報（種別と価格）: アコーディオン・新しい順（逆順） */}
+      {/* チケット情報（種別と価格・会場/日付ごとの受付期間）: 新しい順（逆順） */}
       {live.ticketLineup && live.ticketLineup.length > 0 && (
         <EventSection title="チケット情報">
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
             {[...live.ticketLineup].reverse().map((t, i) => (
-              <div key={i} className={`${BLOCK} flex items-center justify-between`}>
-                <span className="font-bold text-[#3a2540]">{t.ticketName}</span>
-                <span className="font-bold text-gold-700">{t.price}</span>
-              </div>
+              <TicketLineupBlock key={i} ticket={t} />
             ))}
           </div>
         </EventSection>
@@ -386,6 +384,51 @@ export default async function LiveDetailPage({
 }
 
 // ====== サブコンポーネント ======
+
+function TicketLineupBlock({ ticket }: { ticket: TicketLineup }) {
+  const venueDates = (ticket.venueDates ?? []).filter(
+    (vd) => vd.venueName || vd.date || vd.saleStart || vd.saleEnd,
+  )
+  return (
+    <div className={BLOCK}>
+      <div className="flex items-center justify-between gap-2">
+        <span className="font-bold text-[#3a2540]">{ticket.ticketName}</span>
+        <span className="font-bold text-gold-700">{ticket.price}</span>
+      </div>
+      {venueDates.length > 0 && (
+        <details className="group mt-3 border-t border-gold-100/70 pt-2">
+          <summary className="flex cursor-pointer list-none items-center justify-between text-xs font-bold text-gold-700">
+            <span>会場・日付ごとの受付期間</span>
+            <span className="text-gold-500 transition-transform group-open:rotate-180">▼</span>
+          </summary>
+          <div className="mt-2 space-y-2">
+            {venueDates.map((vd, j) => (
+              <div key={j} className="rounded-lg bg-gold-50/60 p-2.5 text-xs text-[#6a5570]">
+                <div className="mb-1 flex flex-wrap items-center gap-2">
+                  {vd.venueName && (
+                    <span className="font-bold text-[#3a2540]">{vd.venueName}</span>
+                  )}
+                  {vd.date && (
+                    <span className="rounded-full bg-gold-400 px-2 py-0.5 text-[11px] text-white">
+                      {formatDateDot(vd.date)}
+                    </span>
+                  )}
+                </div>
+                {(vd.saleStart || vd.saleEnd) && (
+                  <p>
+                    <span className="text-[#9a8aa0]">受付：</span>
+                    {vd.saleStart ?? ""}
+                    {vd.saleEnd ? ` 〜 ${vd.saleEnd}` : vd.saleStart ? " 〜" : ""}
+                  </p>
+                )}
+              </div>
+            ))}
+          </div>
+        </details>
+      )}
+    </div>
+  )
+}
 
 function TicketBlock({ ticket }: { ticket: TicketInfo }) {
   const isClosed = ticket.status === "受付終了"
