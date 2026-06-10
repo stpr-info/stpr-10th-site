@@ -34,8 +34,8 @@ export type SubField = {
   options?: string[] // select 用（静的）
   /** type:"select" で選択肢を動的に供給する。同一フォームの repeater から読む。
    *  "venues" は「会場公演」の会場名、"ticketLineup" は「チケットラインナップ」の
-   *  チケット名を選択肢にする。 */
-  optionsSource?: "venues" | "ticketLineup"
+   *  チケット名、"shows" は「会場公演」の各公演（会場 日付 部）を選択肢にする。 */
+  optionsSource?: "venues" | "ticketLineup" | "shows"
   placeholder?: string
   itemFields?: SubField[] // ネスト repeater 用
   /** type:"image" で複数枚アップロードを許可（行内 jsonb に URL 配列で保存）。 */
@@ -197,6 +197,13 @@ export const TABLES: Record<string, TableConfig> = {
             optionsSource: "ticketLineup",
             multiple: true,
           },
+          {
+            name: "showRefs",
+            label: "対象公演（複数可）",
+            type: "select",
+            optionsSource: "shows",
+            multiple: true,
+          },
           { name: "salePeriod", label: "販売期間", type: "text" },
           // ステータスは受付開始/終了から自動計算するため status 入力は廃止。
           { name: "saleStart", label: "受付開始日時", type: "text", placeholder: "2026-05-01 10:00" },
@@ -215,6 +222,13 @@ export const TABLES: Record<string, TableConfig> = {
                 label: "対象チケット（ラインナップ・複数可）",
                 type: "select",
                 optionsSource: "ticketLineup",
+                multiple: true,
+              },
+              {
+                name: "showRefs",
+                label: "対象公演（複数可）",
+                type: "select",
+                optionsSource: "shows",
                 multiple: true,
               },
               { name: "date", label: "対象日付", type: "text", placeholder: "2026-06-04" },

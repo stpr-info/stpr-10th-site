@@ -28,36 +28,54 @@ function isEmptyRow(row: Row): boolean {
 const inputCls =
   "rounded-lg border border-gold-200 bg-white px-3 py-2 text-sm outline-none transition-colors focus:border-gold-400 focus:ring-2 focus:ring-gold-100"
 
-// optionsSource → 読み取り元の hidden input 名と参照フィールド名の対応。
-//  - "venues":       会場公演 repeater の venueName
-//  - "ticketLineup": チケットラインナップ repeater の ticketName
-const OPTIONS_SOURCE: Record<
-  NonNullable<SubField["optionsSource"]>,
-  { inputName: string; fieldName: string }
-> = {
-  venues: { inputName: "venues", fieldName: "venueName" },
-  ticketLineup: { inputName: "ticket_lineup", fieldName: "ticketName" },
+type SourceRow = Record<string, unknown>
+
+function str(v: unknown): string {
+  return typeof v === "string" ? v.trim() : ""
 }
 
-/** 同一フォームの repeater（hidden input）から指定フィールドの値一覧を読み出す。
+// optionsSource → 読み取り元の hidden input 名・値の抽出・未登録時の案内文。
+//  - "venues":       会場公演 repeater の venueName
+//  - "ticketLineup": チケットラインナップ repeater の ticketName
+//  - "shows":        会場公演 repeater の各 shows（公演）を「会場 日付 部」で展開
+const OPTIONS_SOURCE: Record<
+  NonNullable<SubField["optionsSource"]>,
+  { inputName: string; extract: (rows: SourceRow[]) => string[]; emptyHint: string }
+> = {
+  venues: {
+    inputName: "venues",
+    extract: (rows) => rows.map((r) => str(r.venueName)),
+    emptyHint: "先に「会場公演」を登録してください",
+  },
+  ticketLineup: {
+    inputName: "ticket_lineup",
+    extract: (rows) => rows.map((r) => str(r.ticketName)),
+    emptyHint: "先に「チケットラインナップ」を登録してください",
+  },
+  shows: {
+    inputName: "venues",
+    extract: (rows) =>
+      rows.flatMap((v) => {
+        const shows = Array.isArray(v.shows) ? (v.shows as SourceRow[]) : []
+        return shows.map((s) =>
+          [str(v.venueName), str(s.date), str(s.partLabel)].filter(Boolean).join(" "),
+        )
+      }),
+    emptyHint: "先に「会場公演」の公演リストを登録してください",
+  },
+}
+
+/** 同一フォームの repeater（hidden input）から選択肢の値一覧を読み出す。
  *  フォーカス時に最新状態を取り直すために都度呼ぶ。 */
 function readSourceValues(source: NonNullable<SubField["optionsSource"]>): string[] {
   if (typeof document === "undefined") return []
-  const { inputName, fieldName } = OPTIONS_SOURCE[source]
+  const { inputName, extract } = OPTIONS_SOURCE[source]
   const el = document.querySelector<HTMLInputElement>(`input[name="${inputName}"]`)
   if (!el?.value) return []
   try {
     const rows = JSON.parse(el.value)
     if (!Array.isArray(rows)) return []
-    return Array.from(
-      new Set(
-        rows
-          .map((r) =>
-            r && typeof r[fieldName] === "string" ? (r[fieldName] as string).trim() : "",
-          )
-          .filter((v): v is string => v.length > 0),
-      ),
-    )
+    return Array.from(new Set(extract(rows as SourceRow[]).filter((v) => v.length > 0)))
   } catch {
     return []
   }
@@ -130,7 +148,7 @@ function DynamicMultiSelect({
       <span className="text-[11px] font-medium text-gold-700">{field.label}</span>
       {options.length === 0 ? (
         <p className="rounded-lg border border-dashed border-gold-200 px-3 py-2 text-[11px] text-[#9a8aa0]">
-          先に「チケットラインナップ」を登録してください
+          {OPTIONS_SOURCE[source].emptyHint}
         </p>
       ) : (
         <div className="flex flex-wrap gap-2">

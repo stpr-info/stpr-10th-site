@@ -32,6 +32,7 @@ export type Venue = {
 export type TicketVenueDate = {
   venueName?: string // 会場名（venues に登録された会場名から選択）
   ticketLineupRefs?: string[] // 対象チケット（ticketName を参照・複数可）
+  showRefs?: string[] // 対象公演（venues の各 shows を「会場 日付 部」で参照・複数可）
   date?: string // チケットの対象日付（公演日ではない）
   salePeriod?: string // 受付期間（自由文字列・販売期間と同形式）
 }
@@ -46,6 +47,7 @@ export type TicketLineup = {
 export type TicketInfo = {
   ticketType: string
   ticketLineupRefs?: string[] // 対応するチケットラインナップ（ticketName を参照・複数可）
+  showRefs?: string[] // 対象公演（venues の各 shows を「会場 日付 部」で参照・複数可）
   salePeriod?: string
   saleStart?: string // 受付開始日時（ステータス自動判定用）
   saleEnd?: string // 受付終了日時（ステータス自動判定用）

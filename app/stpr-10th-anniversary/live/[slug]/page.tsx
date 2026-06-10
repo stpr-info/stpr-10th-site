@@ -394,7 +394,12 @@ function TicketBlock({ ticket }: { ticket: TicketInfo }) {
   const isClosed = status === "受付終了"
   const isLottery = ticket.method?.includes("抽選")
   const venueDates = (ticket.venueDates ?? []).filter(
-    (vd) => vd.venueName || vd.date || vd.salePeriod || (vd.ticketLineupRefs?.length ?? 0) > 0,
+    (vd) =>
+      vd.venueName ||
+      vd.date ||
+      vd.salePeriod ||
+      (vd.ticketLineupRefs?.length ?? 0) > 0 ||
+      (vd.showRefs?.length ?? 0) > 0,
   )
   return (
     <div className="rounded-xl border border-gold-100/70 p-4">
@@ -428,6 +433,12 @@ function TicketBlock({ ticket }: { ticket: TicketInfo }) {
             {ticket.ticketLineupRefs.join("、")}
           </p>
         )}
+        {ticket.showRefs && ticket.showRefs.length > 0 && (
+          <p>
+            <span className="text-[#9a8aa0]">対象公演：</span>
+            {ticket.showRefs.join("、")}
+          </p>
+        )}
         {ticket.salePeriod && <p>{ticket.salePeriod}</p>}
         {ticket.price && <p>{ticket.price}</p>}
         {ticket.info && (
@@ -457,6 +468,12 @@ function TicketBlock({ ticket }: { ticket: TicketInfo }) {
                   <p>
                     <span className="text-[#9a8aa0]">対象チケット：</span>
                     {vd.ticketLineupRefs.join("、")}
+                  </p>
+                )}
+                {vd.showRefs && vd.showRefs.length > 0 && (
+                  <p>
+                    <span className="text-[#9a8aa0]">対象公演：</span>
+                    {vd.showRefs.join("、")}
                   </p>
                 )}
                 {vd.salePeriod && (
