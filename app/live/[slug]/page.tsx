@@ -3,7 +3,7 @@ import Link from "next/link"
 import { notFound } from "next/navigation"
 import { getLiveBySlug } from "@/lib/repo"
 import { getGroupName } from "@/data/groups"
-import { formatDateDot, formatPeriod, formatVenueName, getLiveStatus } from "@/lib/utils"
+import { formatPeriod, formatVenueName, getLiveStatus } from "@/lib/utils"
 
 type Params = { params: Promise<{ slug: string }> }
 
@@ -137,44 +137,12 @@ export default async function LiveDetailPage({ params }: Params) {
             チケット
           </h2>
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-            {live.ticketLineup.map((t, i) => {
-              const venueDates = (t.venueDates ?? []).filter(
-                (vd) => vd.venueName || vd.date || vd.saleStart || vd.saleEnd,
-              )
-              return (
-                <div key={i} className="rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm">
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="text-gray-700">{t.ticketName}</span>
-                    <span className="font-semibold text-gray-900">{t.price}</span>
-                  </div>
-                  {venueDates.length > 0 && (
-                    <details className="group mt-2 border-t border-gray-100 pt-2">
-                      <summary className="flex cursor-pointer list-none items-center justify-between text-xs font-medium text-accent-700">
-                        <span>会場・日付ごとの受付期間</span>
-                        <span className="text-accent-500 transition-transform group-open:rotate-180">▼</span>
-                      </summary>
-                      <div className="mt-2 space-y-2">
-                        {venueDates.map((vd, j) => (
-                          <div key={j} className="rounded-md bg-gray-50 p-2 text-xs text-gray-600">
-                            <div className="mb-1 flex flex-wrap items-center gap-2">
-                              {vd.venueName && <span className="font-semibold text-gray-800">{vd.venueName}</span>}
-                              {vd.date && <span className="text-accent-700">{formatDateDot(vd.date)}</span>}
-                            </div>
-                            {(vd.saleStart || vd.saleEnd) && (
-                              <p>
-                                <span className="text-gray-400">受付：</span>
-                                {vd.saleStart ?? ""}
-                                {vd.saleEnd ? ` 〜 ${vd.saleEnd}` : vd.saleStart ? " 〜" : ""}
-                              </p>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    </details>
-                  )}
-                </div>
-              )
-            })}
+            {live.ticketLineup.map((t, i) => (
+              <div key={i} className="flex items-center justify-between rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm">
+                <span className="text-gray-700">{t.ticketName}</span>
+                <span className="font-semibold text-gray-900">{t.price}</span>
+              </div>
+            ))}
           </div>
         </section>
       )}

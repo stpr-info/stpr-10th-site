@@ -32,9 +32,10 @@ export type SubField = {
   label: string
   type: SubFieldType
   options?: string[] // select 用（静的）
-  /** type:"select" で選択肢を動的に供給する。"venues" は同一フォームの
-   *  「会場公演」repeater に登録済みの会場名を選択肢にする。 */
-  optionsSource?: "venues"
+  /** type:"select" で選択肢を動的に供給する。同一フォームの repeater から読む。
+   *  "venues" は「会場公演」の会場名、"ticketLineup" は「チケットラインナップ」の
+   *  チケット名を選択肢にする。 */
+  optionsSource?: "venues" | "ticketLineup"
   placeholder?: string
   itemFields?: SubField[] // ネスト repeater 用
   /** type:"image" で複数枚アップロードを許可（行内 jsonb に URL 配列で保存）。 */
@@ -180,6 +181,25 @@ export const TABLES: Record<string, TableConfig> = {
         itemFields: [
           { name: "ticketName", label: "チケット名", type: "text" },
           { name: "price", label: "価格", type: "text", placeholder: "¥9,000" },
+        ],
+      },
+      {
+        name: "ticket_info",
+        label: "チケット情報",
+        type: "repeater",
+        itemFields: [
+          { name: "ticketType", label: "種別", type: "text", placeholder: "一般 / FC先行" },
+          {
+            name: "ticketLineupRef",
+            label: "対象チケット（ラインナップ）",
+            type: "select",
+            optionsSource: "ticketLineup",
+          },
+          { name: "salePeriod", label: "販売期間", type: "text" },
+          { name: "price", label: "価格", type: "text" },
+          { name: "method", label: "販売方式", type: "text", placeholder: "抽選 / 先着" },
+          { name: "purchaseUrl", label: "購入URL", type: "text" },
+          { name: "status", label: "ステータス", type: "text", placeholder: "受付中 / 受付終了" },
           {
             name: "venueDates",
             label: "会場・日付ごとの受付期間",
@@ -191,19 +211,6 @@ export const TABLES: Record<string, TableConfig> = {
               { name: "saleEnd", label: "受付終了日時", type: "text", placeholder: "2026-05-10 23:59" },
             ],
           },
-        ],
-      },
-      {
-        name: "ticket_info",
-        label: "チケット情報",
-        type: "repeater",
-        itemFields: [
-          { name: "ticketType", label: "種別", type: "text", placeholder: "一般 / FC先行" },
-          { name: "salePeriod", label: "販売期間", type: "text" },
-          { name: "price", label: "価格", type: "text" },
-          { name: "method", label: "販売方式", type: "text", placeholder: "抽選 / 先着" },
-          { name: "purchaseUrl", label: "購入URL", type: "text" },
-          { name: "status", label: "ステータス", type: "text", placeholder: "受付中 / 受付終了" },
         ],
       },
       {

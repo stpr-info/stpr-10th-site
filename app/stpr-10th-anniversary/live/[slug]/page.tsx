@@ -13,7 +13,6 @@ import type {
   Venue,
   Show,
   TicketInfo,
-  TicketLineup,
   LiveGoodsInfo,
 } from "@/data/lives"
 import SafeImage from "@/components/common/SafeImage"
@@ -202,12 +201,15 @@ export default async function LiveDetailPage({
         </div>
       )}
 
-      {/* チケット情報（種別と価格・会場/日付ごとの受付期間）: 新しい順（逆順） */}
+      {/* チケット情報（種別と価格）: アコーディオン・新しい順（逆順） */}
       {live.ticketLineup && live.ticketLineup.length > 0 && (
         <EventSection title="チケット情報">
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
             {[...live.ticketLineup].reverse().map((t, i) => (
-              <TicketLineupBlock key={i} ticket={t} />
+              <div key={i} className={`${BLOCK} flex items-center justify-between`}>
+                <span className="font-bold text-[#3a2540]">{t.ticketName}</span>
+                <span className="font-bold text-gold-700">{t.price}</span>
+              </div>
             ))}
           </div>
         </EventSection>
@@ -385,15 +387,47 @@ export default async function LiveDetailPage({
 
 // ====== サブコンポーネント ======
 
-function TicketLineupBlock({ ticket }: { ticket: TicketLineup }) {
+function TicketBlock({ ticket }: { ticket: TicketInfo }) {
+  const isClosed = ticket.status === "受付終了"
+  const isLottery = ticket.method?.includes("抽選")
   const venueDates = (ticket.venueDates ?? []).filter(
     (vd) => vd.venueName || vd.date || vd.saleStart || vd.saleEnd,
   )
   return (
-    <div className={BLOCK}>
-      <div className="flex items-center justify-between gap-2">
-        <span className="font-bold text-[#3a2540]">{ticket.ticketName}</span>
-        <span className="font-bold text-gold-700">{ticket.price}</span>
+    <div className="rounded-xl border border-gold-100/70 p-4">
+      <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <h3 className="font-bold text-gold-700">{ticket.ticketType}</h3>
+          {ticket.status && (
+            <span
+              className={`rounded-full px-2 py-0.5 text-xs font-medium ${
+                ticket.status === "受付中"
+                  ? "bg-green-100 text-green-700"
+                  : "bg-gray-200 text-gray-500"
+              }`}
+            >
+              {ticket.status}
+            </span>
+          )}
+        </div>
+        {ticket.method && (
+          <span className="rounded-full bg-gold-50 px-2 py-0.5 text-xs text-[#6a5570]">
+            {ticket.method}
+          </span>
+        )}
+      </div>
+      <div className="space-y-1 text-sm text-[#6a5570]">
+        {ticket.ticketLineupRef && (
+          <p>
+            <span className="text-[#9a8aa0]">対象チケット：</span>
+            {ticket.ticketLineupRef}
+          </p>
+        )}
+        {ticket.salePeriod && <p>{ticket.salePeriod}</p>}
+        {ticket.price && <p>{ticket.price}</p>}
+        {ticket.info && (
+          <p className="mt-2 whitespace-pre-wrap text-xs text-[#9a8aa0]">{ticket.info}</p>
+        )}
       </div>
       {venueDates.length > 0 && (
         <details className="group mt-3 border-t border-gold-100/70 pt-2">
@@ -426,43 +460,6 @@ function TicketLineupBlock({ ticket }: { ticket: TicketLineup }) {
           </div>
         </details>
       )}
-    </div>
-  )
-}
-
-function TicketBlock({ ticket }: { ticket: TicketInfo }) {
-  const isClosed = ticket.status === "受付終了"
-  const isLottery = ticket.method?.includes("抽選")
-  return (
-    <div className="rounded-xl border border-gold-100/70 p-4">
-      <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-        <div className="flex flex-wrap items-center gap-2">
-          <h3 className="font-bold text-gold-700">{ticket.ticketType}</h3>
-          {ticket.status && (
-            <span
-              className={`rounded-full px-2 py-0.5 text-xs font-medium ${
-                ticket.status === "受付中"
-                  ? "bg-green-100 text-green-700"
-                  : "bg-gray-200 text-gray-500"
-              }`}
-            >
-              {ticket.status}
-            </span>
-          )}
-        </div>
-        {ticket.method && (
-          <span className="rounded-full bg-gold-50 px-2 py-0.5 text-xs text-[#6a5570]">
-            {ticket.method}
-          </span>
-        )}
-      </div>
-      <div className="space-y-1 text-sm text-[#6a5570]">
-        {ticket.salePeriod && <p>{ticket.salePeriod}</p>}
-        {ticket.price && <p>{ticket.price}</p>}
-        {ticket.info && (
-          <p className="mt-2 whitespace-pre-wrap text-xs text-[#9a8aa0]">{ticket.info}</p>
-        )}
-      </div>
       {ticket.purchaseUrl && !isClosed && (
         <a
           href={ticket.purchaseUrl}

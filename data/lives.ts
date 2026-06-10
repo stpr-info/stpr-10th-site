@@ -40,18 +40,19 @@ export type TicketVenueDate = {
 export type TicketLineup = {
   ticketName?: string
   price?: string
-  venueDates?: TicketVenueDate[] // 会場・日付ごとの受付期間
 }
 
 /** チケット種別（複数対応） */
 export type TicketInfo = {
   ticketType: string
+  ticketLineupRef?: string // 対応するチケットラインナップ（ticketName を参照）
   salePeriod?: string
   price?: string
   method?: string // "抽選" / "先着" 等
   info?: string
   purchaseUrl?: string
   status?: string // "受付中" / "受付終了" 等
+  venueDates?: TicketVenueDate[] // 会場・日付ごとの受付期間
 }
 
 /** 会場ごとのグッズ販売状況 */

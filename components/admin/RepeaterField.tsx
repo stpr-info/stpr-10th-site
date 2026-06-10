@@ -28,11 +28,23 @@ function isEmptyRow(row: Row): boolean {
 const inputCls =
   "rounded-lg border border-gold-200 bg-white px-3 py-2 text-sm outline-none transition-colors focus:border-gold-400 focus:ring-2 focus:ring-gold-100"
 
-/** 同一フォームの「会場公演」repeater（hidden input name="venues"）から
- *  登録済みの会場名を読み出す。フォーカス時に最新状態を取り直す。 */
-function readVenueNames(): string[] {
+// optionsSource → 読み取り元の hidden input 名と参照フィールド名の対応。
+//  - "venues":       会場公演 repeater の venueName
+//  - "ticketLineup": チケットラインナップ repeater の ticketName
+const OPTIONS_SOURCE: Record<
+  NonNullable<SubField["optionsSource"]>,
+  { inputName: string; fieldName: string }
+> = {
+  venues: { inputName: "venues", fieldName: "venueName" },
+  ticketLineup: { inputName: "ticket_lineup", fieldName: "ticketName" },
+}
+
+/** 同一フォームの repeater（hidden input）から指定フィールドの値一覧を読み出す。
+ *  フォーカス時に最新状態を取り直すために都度呼ぶ。 */
+function readSourceValues(source: NonNullable<SubField["optionsSource"]>): string[] {
   if (typeof document === "undefined") return []
-  const el = document.querySelector<HTMLInputElement>('input[name="venues"]')
+  const { inputName, fieldName } = OPTIONS_SOURCE[source]
+  const el = document.querySelector<HTMLInputElement>(`input[name="${inputName}"]`)
   if (!el?.value) return []
   try {
     const rows = JSON.parse(el.value)
@@ -40,7 +52,9 @@ function readVenueNames(): string[] {
     return Array.from(
       new Set(
         rows
-          .map((r) => (r && typeof r.venueName === "string" ? r.venueName.trim() : ""))
+          .map((r) =>
+            r && typeof r[fieldName] === "string" ? (r[fieldName] as string).trim() : "",
+          )
           .filter((v): v is string => v.length > 0),
       ),
     )
@@ -49,26 +63,28 @@ function readVenueNames(): string[] {
   }
 }
 
-/** 会場名セレクト（venues repeater から動的に選択肢を供給）。 */
-function VenueNameSelect({
+/** 動的セレクト（同一フォームの別 repeater から選択肢を供給）。 */
+function DynamicSelect({
   field,
   value,
   onChange,
+  source,
 }: {
   field: SubField
   value: unknown
   onChange: (v: unknown) => void
+  source: NonNullable<SubField["optionsSource"]>
 }) {
-  const [names, setNames] = useState<string[]>(() => readVenueNames())
+  const [opts, setOpts] = useState<string[]>(() => readSourceValues(source))
   const current = typeof value === "string" ? value : ""
-  // 保存済みの値が候補に無くても選択肢に残す（会場名変更時のデータ保全）。
-  const options = current && !names.includes(current) ? [current, ...names] : names
+  // 保存済みの値が候補に無くても選択肢に残す（参照元の変更時のデータ保全）。
+  const options = current && !opts.includes(current) ? [current, ...opts] : opts
   return (
     <label className="flex flex-col gap-1">
       <span className="text-[11px] font-medium text-gold-700">{field.label}</span>
       <select
         value={current}
-        onFocus={() => setNames(readVenueNames())}
+        onFocus={() => setOpts(readSourceValues(source))}
         onChange={(e) => onChange(e.target.value)}
         className={inputCls}
       >
@@ -175,8 +191,15 @@ function SubFieldInput({
   }
 
   if (field.type === "select") {
-    if (field.optionsSource === "venues") {
-      return <VenueNameSelect field={field} value={value} onChange={onChange} />
+    if (field.optionsSource) {
+      return (
+        <DynamicSelect
+          field={field}
+          value={value}
+          onChange={onChange}
+          source={field.optionsSource}
+        />
+      )
     }
     return (
       <label className="flex flex-col gap-1">
