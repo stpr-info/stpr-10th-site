@@ -34,26 +34,26 @@ function str(v: unknown): string {
   return typeof v === "string" ? v.trim() : ""
 }
 
-// optionsSource → 読み取り元の hidden input 名・値の抽出・未登録時の案内文。
-//  - "venues":       会場公演 repeater の venueName
+// optionsSource → 読み取り元（input/textarea name の候補・先頭優先）・値の抽出・未登録時の案内文。
+//  - "venues":       会場公演 repeater(venues) の venueName。無ければ取込用 venues_json。
 //  - "ticketLineup": チケットラインナップ repeater の ticketName
-//  - "shows":        会場公演 repeater の各 shows（公演）を「会場 日付 部」で展開
+//  - "shows":        会場公演の各 shows（公演）を「会場 日付 部」で展開。venues/venues_json 両対応
 const OPTIONS_SOURCE: Record<
   NonNullable<SubField["optionsSource"]>,
-  { inputName: string; extract: (rows: SourceRow[]) => string[]; emptyHint: string }
+  { names: string[]; extract: (rows: SourceRow[]) => string[]; emptyHint: string }
 > = {
   venues: {
-    inputName: "venues",
+    names: ["venues", "venues_json"],
     extract: (rows) => rows.map((r) => str(r.venueName)),
     emptyHint: "先に「会場公演」を登録してください",
   },
   ticketLineup: {
-    inputName: "ticket_lineup",
+    names: ["ticket_lineup"],
     extract: (rows) => rows.map((r) => str(r.ticketName)),
     emptyHint: "先に「チケットラインナップ」を登録してください",
   },
   shows: {
-    inputName: "venues",
+    names: ["venues", "venues_json"],
     extract: (rows) =>
       rows.flatMap((v) => {
         const shows = Array.isArray(v.shows) ? (v.shows as SourceRow[]) : []
@@ -65,20 +65,30 @@ const OPTIONS_SOURCE: Record<
   },
 }
 
-/** 同一フォームの repeater（hidden input）から選択肢の値一覧を読み出す。
+/** name 一致の input / textarea の現在値を取得（hidden input・json textarea 両対応）。 */
+function readNamedValue(name: string): string {
+  if (typeof document === "undefined") return ""
+  const el = document.querySelector<HTMLInputElement | HTMLTextAreaElement>(`[name="${name}"]`)
+  return el?.value ?? ""
+}
+
+/** 同一フォームの候補 name（先頭優先）から選択肢の値一覧を読み出す。
  *  フォーカス時に最新状態を取り直すために都度呼ぶ。 */
 function readSourceValues(source: NonNullable<SubField["optionsSource"]>): string[] {
-  if (typeof document === "undefined") return []
-  const { inputName, extract } = OPTIONS_SOURCE[source]
-  const el = document.querySelector<HTMLInputElement>(`input[name="${inputName}"]`)
-  if (!el?.value) return []
-  try {
-    const rows = JSON.parse(el.value)
-    if (!Array.isArray(rows)) return []
-    return Array.from(new Set(extract(rows as SourceRow[]).filter((v) => v.length > 0)))
-  } catch {
-    return []
+  const { names, extract } = OPTIONS_SOURCE[source]
+  for (const name of names) {
+    const raw = readNamedValue(name)
+    if (!raw) continue
+    try {
+      const rows = JSON.parse(raw)
+      if (!Array.isArray(rows)) continue
+      const vals = Array.from(new Set(extract(rows as SourceRow[]).filter((v) => v.length > 0)))
+      if (vals.length > 0) return vals
+    } catch {
+      /* 次の候補へ */
+    }
   }
+  return []
 }
 
 /** 動的セレクト（同一フォームの別 repeater から選択肢を供給）。 */
