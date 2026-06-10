@@ -40,6 +40,9 @@ export type SubField = {
   itemFields?: SubField[] // ネスト repeater 用
   /** type:"image" で複数枚アップロードを許可（行内 jsonb に URL 配列で保存）。 */
   multiple?: boolean
+  /** type:"repeater" で、同一フォームの別 repeater（hidden input 名）の現在の行を
+   *  コピーするボタンを表示する。例: "setlist"（基本セトリ）→ 公演ごとのセトリへ。 */
+  copyFrom?: string
 }
 
 export type Field = {
@@ -303,13 +306,14 @@ export const TABLES: Record<string, TableConfig> = {
         name: "show_setlists",
         label: "公演ごとのセットリスト",
         type: "repeater",
-        help: "公演ごとにセトリが変わる場合に使用。対象公演を選び、その公演のセトリを入力します。",
+        help: "公演ごとにセトリが変わる場合に使用。対象公演を選び、「基本セトリをコピー」で基本セットリストを取り込んでから、違う曲だけ直せます。",
         itemFields: [
           { name: "showRef", label: "対象公演", type: "select", optionsSource: "shows" },
           {
             name: "setlist",
-            label: "セットリスト",
+            label: "セットリスト（基本をコピーして一部だけ変更可）",
             type: "repeater",
+            copyFrom: "setlist",
             itemFields: [
               { name: "trackNumber", label: "曲番号", type: "number" },
               { name: "title", label: "曲名", type: "text" },

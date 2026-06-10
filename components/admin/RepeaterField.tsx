@@ -179,6 +179,19 @@ function DynamicMultiSelect({
   )
 }
 
+/** 同一フォームの別 repeater（hidden input 名）の現在の行を読み出す（コピー用）。 */
+function readRepeaterRows(inputName: string): Row[] {
+  if (typeof document === "undefined") return []
+  const el = document.querySelector<HTMLInputElement>(`input[name="${inputName}"]`)
+  if (!el?.value) return []
+  try {
+    const rows = JSON.parse(el.value)
+    return Array.isArray(rows) ? (rows as Row[]) : []
+  } catch {
+    return []
+  }
+}
+
 /** サブ項目 1 つの入力 UI。 */
 function SubFieldInput({
   field,
@@ -226,13 +239,34 @@ function SubFieldInput({
   }
 
   if (field.type === "repeater") {
+    const rows = Array.isArray(value) ? (value as Row[]) : []
+    const copyFromSource = () => {
+      const src = readRepeaterRows(field.copyFrom as string)
+      if (src.length === 0) {
+        window.alert("コピー元（基本セットリスト）が空です。")
+        return
+      }
+      if (rows.length > 0 && !window.confirm("現在の内容をコピー元で置き換えますか？")) return
+      onChange(src)
+    }
     return (
       <div className="flex flex-col gap-1 sm:col-span-2">
-        <span className="text-[11px] font-medium text-gold-700">{field.label}</span>
+        <div className="flex items-center justify-between gap-2">
+          <span className="text-[11px] font-medium text-gold-700">{field.label}</span>
+          {field.copyFrom && (
+            <button
+              type="button"
+              onClick={copyFromSource}
+              className="shrink-0 rounded-full border border-gold-300 bg-white px-3 py-0.5 text-[11px] text-gold-700 transition-colors hover:bg-gold-50"
+            >
+              基本セトリをコピー
+            </button>
+          )}
+        </div>
         <div className="rounded-lg border border-dashed border-gold-200 p-2">
           <RowsEditor
-            rows={Array.isArray(value) ? (value as Row[]) : []}
-            onChange={(rows) => onChange(rows)}
+            rows={rows}
+            onChange={(r) => onChange(r)}
             itemFields={field.itemFields ?? []}
             table={table}
           />
