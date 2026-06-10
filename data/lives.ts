@@ -46,6 +46,7 @@ export type TicketVenueDate = {
   showRefs?: string[] // 対象公演（venues の各 shows を「会場 日付 部」で参照・複数可）
   date?: string // チケットの対象日付（公演日ではない）
   salePeriod?: string // 受付期間（自由文字列・販売期間と同形式）
+  salesOutlets?: TicketSalesOutlet[] // チケット販売場所・対象公演・購入URL
 }
 
 /** チケットラインナップ（名称・価格の早見） */
@@ -54,11 +55,18 @@ export type TicketLineup = {
   price?: string
 }
 
-/** チケット販売場所と購入URL（STPRチケット / チケットぴあ 等） */
+/** 販売場所内の「券種ごとの対象公演」 */
+export type TicketScope = {
+  ticketLineupRef?: string // 券種（ticketLineup の ticketName を参照）
+  showRefs?: string[] // その券種の対象公演（venues の各 shows を「会場 日付 部」で参照・複数可）
+}
+
+/** チケット販売場所と購入URL（STPRチケット / プレイガイド先行 等） */
 export type TicketSalesOutlet = {
-  name?: string // 販売場所（例: STPRチケット / チケットぴあ）
+  name?: string // 販売場所（例: STPR TICKET / プレイガイド先行）
   url?: string // 購入URL
-  showRefs?: string[] // この販売場所の対象公演（venues の各 shows を「会場 日付 部」で参照・複数可）
+  showRefs?: string[] // （簡易）販売場所全体の対象公演。券種を分けないとき用
+  ticketScopes?: TicketScope[] // 券種ごとの対象公演
 }
 
 /** チケット種別（複数対応） */

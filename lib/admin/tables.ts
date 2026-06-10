@@ -72,6 +72,38 @@ export type TableConfig = {
   titleField: string // 行の代表表示に使う列
 }
 
+/** 「チケット販売場所・対象公演・購入URL」共通フィールド（チケット情報と会場日付で再利用）。
+ *  販売場所ごとに「券種→対象公演」を持つ。プレイガイド先行は1エントリでOK（表示で3社併記）。 */
+const TICKET_SALES_OUTLETS_FIELD: SubField = {
+  name: "salesOutlets",
+  label: "チケット販売場所・対象公演・購入URL",
+  type: "repeater",
+  itemFields: [
+    {
+      name: "name",
+      label: "販売場所",
+      type: "text",
+      placeholder: "STPR TICKET / プレイガイド先行 等",
+    },
+    { name: "url", label: "購入URL", type: "text" },
+    {
+      name: "ticketScopes",
+      label: "券種ごとの対象公演",
+      type: "repeater",
+      itemFields: [
+        { name: "ticketLineupRef", label: "券種", type: "select", optionsSource: "ticketLineup" },
+        {
+          name: "showRefs",
+          label: "対象公演（複数可）",
+          type: "select",
+          optionsSource: "shows",
+          multiple: true,
+        },
+      ],
+    },
+  ],
+}
+
 export const TABLES: Record<string, TableConfig> = {
   lives: {
     key: "lives",
@@ -232,22 +264,7 @@ export const TABLES: Record<string, TableConfig> = {
             type: "textarea",
             placeholder: "例）STPR TICKET：名古屋公演・大阪公演\nプレイガイド：8/17(月)大阪公演",
           },
-          {
-            name: "salesOutlets",
-            label: "チケット販売場所・対象公演・購入URL",
-            type: "repeater",
-            itemFields: [
-              { name: "name", label: "販売場所", type: "text", placeholder: "STPRチケット / チケットぴあ 等" },
-              {
-                name: "showRefs",
-                label: "対象公演（複数可）",
-                type: "select",
-                optionsSource: "shows",
-                multiple: true,
-              },
-              { name: "url", label: "購入URL", type: "text" },
-            ],
-          },
+          TICKET_SALES_OUTLETS_FIELD,
           {
             name: "venueDates",
             label: "会場・日付ごとの受付期間",
@@ -270,6 +287,7 @@ export const TABLES: Record<string, TableConfig> = {
               },
               { name: "date", label: "対象日付", type: "text", placeholder: "2026-06-04" },
               { name: "salePeriod", label: "受付期間", type: "text", placeholder: "2026/05/01 10:00〜2026/05/10 23:59" },
+              TICKET_SALES_OUTLETS_FIELD,
             ],
           },
         ],

@@ -14,6 +14,7 @@ import type {
   Venue,
   Show,
   TicketInfo,
+  TicketSalesOutlet,
   GoodsReceiveMethod,
 } from "@/data/lives"
 import SafeImage from "@/components/common/SafeImage"
@@ -498,41 +499,94 @@ function TicketBlock({ ticket }: { ticket: TicketInfo }) {
                     {vd.salePeriod}
                   </p>
                 )}
+                <SalesOutletList
+                  outlets={vd.salesOutlets ?? []}
+                  isLottery={isLottery}
+                  isClosed={isClosed}
+                />
               </div>
             ))}
           </div>
         </details>
       )}
-      {salesOutlets.length > 0 && (
-        <div className="mt-3">
-          <p className="mb-1.5 text-xs text-[#9a8aa0]">販売場所・対象公演</p>
-          <div className="space-y-2">
-            {salesOutlets.map((o, i) => (
-              <div key={i} className="rounded-lg bg-gold-50/60 p-2.5 text-xs text-[#6a5570]">
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <span className="font-bold text-[#3a2540]">{o.name || "販売場所"}</span>
-                  {o.url && !isClosed && (
-                    <a
-                      href={o.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-block rounded-lg bg-gold-400 px-3 py-1 text-[11px] text-white transition-colors hover:bg-gold-500"
-                    >
-                      {isLottery ? "応募" : "購入"} →
-                    </a>
-                  )}
+      <SalesOutletList outlets={salesOutlets} isLottery={isLottery} isClosed={isClosed} />
+    </div>
+  )
+}
+
+const PLAYGUIDE_PLATFORMS = "イープラス・チケットぴあ・ローソンチケット"
+
+/** 「プレイガイド先行」は3社を併記表示する。 */
+function outletDisplayName(name?: string): string {
+  const n = (name ?? "").trim()
+  if (!n) return "販売場所"
+  if (n.includes("プレイガイド") && !n.includes("イープラス")) {
+    return `${n}（${PLAYGUIDE_PLATFORMS}）`
+  }
+  return n
+}
+
+/** チケット販売場所リスト（販売場所→券種ごとの対象公演）。 */
+function SalesOutletList({
+  outlets,
+  isLottery,
+  isClosed,
+}: {
+  outlets: TicketSalesOutlet[]
+  isLottery?: boolean
+  isClosed?: boolean
+}) {
+  const list = outlets.filter(
+    (o) => o.name || o.url || (o.showRefs?.length ?? 0) > 0 || (o.ticketScopes?.length ?? 0) > 0,
+  )
+  if (list.length === 0) return null
+  return (
+    <div className="mt-3">
+      <p className="mb-1.5 text-xs text-[#9a8aa0]">販売場所・対象公演</p>
+      <div className="space-y-2">
+        {list.map((o, i) => {
+          const scopes = (o.ticketScopes ?? []).filter(
+            (s) => s.ticketLineupRef || (s.showRefs?.length ?? 0) > 0,
+          )
+          return (
+            <div key={i} className="rounded-lg bg-gold-50/60 p-2.5 text-xs text-[#6a5570]">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <span className="font-bold text-[#3a2540]">{outletDisplayName(o.name)}</span>
+                {o.url && !isClosed && (
+                  <a
+                    href={o.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-block rounded-lg bg-gold-400 px-3 py-1 text-[11px] text-white transition-colors hover:bg-gold-500"
+                  >
+                    {isLottery ? "応募" : "購入"} →
+                  </a>
+                )}
+              </div>
+              {scopes.length > 0 ? (
+                <div className="mt-1 space-y-0.5">
+                  {scopes.map((s, j) => (
+                    <p key={j}>
+                      {s.ticketLineupRef && (
+                        <span className="font-bold text-[#3a2540]">{s.ticketLineupRef}</span>
+                      )}
+                      {s.showRefs && s.showRefs.length > 0 && <span>：{s.showRefs.join("、")}</span>}
+                    </p>
+                  ))}
                 </div>
-                {o.showRefs && o.showRefs.length > 0 && (
+              ) : (
+                o.showRefs &&
+                o.showRefs.length > 0 && (
                   <p className="mt-1">
                     <span className="text-[#9a8aa0]">対象公演：</span>
                     {o.showRefs.join("、")}
                   </p>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
+                )
+              )}
+            </div>
+          )
+        })}
+      </div>
     </div>
   )
 }
