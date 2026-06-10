@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { useActionState } from "react"
+import { useActionState, useEffect, useRef } from "react"
 import type { Field } from "@/lib/admin/tables"
 import type { FormState } from "@/lib/admin/crud-actions"
 import ImageField from "./ImageField"
@@ -20,6 +20,18 @@ type Props = {
   initial?: Record<string, unknown>
   submitLabel: string
   cancelHref: string
+  /** new/duplicate のとき slug を自動採番する（edit は既存値を維持）。 */
+  mode?: "new" | "edit" | "duplicate"
+}
+
+/** スラッグ自動採番：YYYYMMDD-HHmm-NNN（NNN は重複回避用のランダム3桁）。 */
+function generateSlug(): string {
+  const d = new Date()
+  const p = (n: number) => String(n).padStart(2, "0")
+  const date = `${d.getFullYear()}${p(d.getMonth() + 1)}${p(d.getDate())}`
+  const time = `${p(d.getHours())}${p(d.getMinutes())}`
+  const seq = String(Math.floor(Math.random() * 1000)).padStart(3, "0")
+  return `${date}-${time}-${seq}`
 }
 
 /** DB 値をフォーム入力用の文字列/真偽に変換する。 */
@@ -51,8 +63,18 @@ export default function RecordForm({
   initial,
   submitLabel,
   cancelHref,
+  mode,
 }: Props) {
   const [state, formAction, pending] = useActionState(action, {})
+  const slugRef = useRef<HTMLInputElement>(null)
+
+  // 新規作成（複製含む）で slug が空なら自動採番する。SSR は空のまま描画し、
+  // マウント後にクライアントで埋めることでハイドレーション不整合を避ける。
+  useEffect(() => {
+    if (mode === "edit") return
+    const el = slugRef.current
+    if (el && !el.value) el.value = generateSlug()
+  }, [mode])
 
   return (
     <form
@@ -195,6 +217,7 @@ export default function RecordForm({
               field.type === "number" ||
               field.type === "date") && (
               <input
+                ref={field.name === "slug" ? slugRef : undefined}
                 type={field.type === "date" ? "date" : field.type === "number" ? "number" : "text"}
                 name={field.name}
                 defaultValue={inputValue}

@@ -55,7 +55,7 @@ export default function AdminRecordView({
 
         {mode === "duplicate" && (
           <p className="mb-4 rounded-xl bg-gold-50 px-4 py-2 text-xs text-gold-700">
-            複製元の内容をコピーしました。スラッグ（URL）を入力してから保存してください。
+            複製元の内容をコピーしました。スラッグ（URL）は自動採番されています（必要に応じて変更してください）。
           </p>
         )}
 
@@ -67,6 +67,7 @@ export default function AdminRecordView({
             initial={initial}
             submitLabel={submitLabel}
             cancelHref={`${basePath}/${table}`}
+            mode={mode}
           />
         </div>
       </main>
