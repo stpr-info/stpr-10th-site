@@ -230,10 +230,17 @@ export const TABLES: Record<string, TableConfig> = {
           },
           {
             name: "salesOutlets",
-            label: "チケット販売場所・購入URL",
+            label: "チケット販売場所・対象公演・購入URL",
             type: "repeater",
             itemFields: [
               { name: "name", label: "販売場所", type: "text", placeholder: "STPRチケット / チケットぴあ 等" },
+              {
+                name: "showRefs",
+                label: "対象公演（複数可）",
+                type: "select",
+                optionsSource: "shows",
+                multiple: true,
+              },
               { name: "url", label: "購入URL", type: "text" },
             ],
           },

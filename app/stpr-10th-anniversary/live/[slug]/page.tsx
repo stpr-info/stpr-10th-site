@@ -406,7 +406,9 @@ function TicketBlock({ ticket }: { ticket: TicketInfo }) {
   const status = getTicketStatus(ticket.saleStart, ticket.saleEnd)
   const isClosed = status === "受付終了"
   const isLottery = ticket.method?.includes("抽選")
-  const salesOutlets = (ticket.salesOutlets ?? []).filter((o) => o.url || o.name)
+  const salesOutlets = (ticket.salesOutlets ?? []).filter(
+    (o) => o.url || o.name || (o.showRefs?.length ?? 0) > 0,
+  )
   const venueDates = (ticket.venueDates ?? []).filter(
     (vd) =>
       vd.venueName ||
@@ -501,32 +503,33 @@ function TicketBlock({ ticket }: { ticket: TicketInfo }) {
           </div>
         </details>
       )}
-      {salesOutlets.length > 0 && !isClosed && (
+      {salesOutlets.length > 0 && (
         <div className="mt-3">
-          <p className="mb-1.5 text-xs text-[#9a8aa0]">
-            {isLottery ? "応募" : "購入"}：チケット販売場所
-          </p>
-          <div className="flex flex-wrap gap-2">
-            {salesOutlets.map((o, i) =>
-              o.url ? (
-                <a
-                  key={i}
-                  href={o.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-block rounded-xl bg-gold-400 px-4 py-2 text-xs text-white transition-colors hover:bg-gold-500"
-                >
-                  {o.name || (isLottery ? "応募する" : "購入する")} →
-                </a>
-              ) : o.name ? (
-                <span
-                  key={i}
-                  className="inline-block rounded-xl bg-gold-50 px-4 py-2 text-xs text-[#6a5570]"
-                >
-                  {o.name}
-                </span>
-              ) : null,
-            )}
+          <p className="mb-1.5 text-xs text-[#9a8aa0]">販売場所・対象公演</p>
+          <div className="space-y-2">
+            {salesOutlets.map((o, i) => (
+              <div key={i} className="rounded-lg bg-gold-50/60 p-2.5 text-xs text-[#6a5570]">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <span className="font-bold text-[#3a2540]">{o.name || "販売場所"}</span>
+                  {o.url && !isClosed && (
+                    <a
+                      href={o.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-block rounded-lg bg-gold-400 px-3 py-1 text-[11px] text-white transition-colors hover:bg-gold-500"
+                    >
+                      {isLottery ? "応募" : "購入"} →
+                    </a>
+                  )}
+                </div>
+                {o.showRefs && o.showRefs.length > 0 && (
+                  <p className="mt-1">
+                    <span className="text-[#9a8aa0]">対象公演：</span>
+                    {o.showRefs.join("、")}
+                  </p>
+                )}
+              </div>
+            ))}
           </div>
         </div>
       )}

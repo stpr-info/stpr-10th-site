@@ -56,6 +56,7 @@ export type TicketLineup = {
 export type TicketSalesOutlet = {
   name?: string // 販売場所（例: STPRチケット / チケットぴあ）
   url?: string // 購入URL
+  showRefs?: string[] // この販売場所の対象公演（venues の各 shows を「会場 日付 部」で参照・複数可）
 }
 
 /** チケット種別（複数対応） */
