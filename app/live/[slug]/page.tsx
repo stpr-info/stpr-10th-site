@@ -4,13 +4,12 @@ import { getLiveBySlug } from "@/lib/repo"
 import { getGroupName } from "@/data/groups"
 import { MEMBERS } from "@/data/members"
 import { formatDateDot, formatPeriod, getLiveStatus, getTicketStatus } from "@/lib/utils"
-import type { Venue, TicketInfo, TicketSalesOutlet, SetlistItem } from "@/data/lives"
+import type { Venue, TicketInfo, TicketLineup, TicketSalesOutlet, SetlistItem } from "@/data/lives"
 import SetlistSelector from "@/components/live/SetlistSelector"
 import JapanVenueMap, { type VenueMapItem, VENUE_COLORS } from "@/components/live/JapanVenueMap"
 import ReportFlipBook from "@/components/live/ReportFlipBook"
 import HeroCountdown from "@/components/live/HeroCountdown"
 import MemberIconRow from "@/components/live/MemberIconRow"
-import VenueMap from "@/components/common/VenueMap"
 import ImageGallery from "@/components/common/ImageGallery"
 
 type Params = { params: Promise<{ slug: string }> }
@@ -222,15 +221,7 @@ export default async function LiveDetailPage({ params }: Params) {
               <CardHead title="チケット種別・料金" />
               <div className="px-4 py-3">
                 {live.ticketLineup.map((t, i) => (
-                  <div
-                    key={i}
-                    className="flex items-center justify-between gap-3 border-b border-gray-100 py-2.5 last:border-0"
-                  >
-                    <span className="text-sm font-semibold text-gray-800">{t.ticketName}</span>
-                    <span className="whitespace-nowrap text-base font-bold text-gray-900">
-                      {t.price}
-                    </span>
-                  </div>
+                  <TicketLineupRow key={i} t={t} />
                 ))}
               </div>
             </div>
@@ -518,11 +509,16 @@ function VenueBlock({
 
       {/* サブ情報グリッド */}
       <div className="grid grid-cols-1 md:grid-cols-2">
-        {/* 会場MAP */}
-        {venue.venueName && (
+        {/* 会場MAP（会場MAP画像が登録されているときだけ表示） */}
+        {venue.areaMapImage && (
           <div className="border-b border-gray-200 p-5 md:border-r">
             <p className="mb-3 text-[11px] font-bold uppercase tracking-[0.1em] text-gray-500">会場MAP</p>
-            <VenueMap query={venue.venueName} title={`${venue.venueName} の地図`} />
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={venue.areaMapImage}
+              alt={`${venue.venueName} 会場MAP`}
+              className="w-full rounded-lg border border-gray-200"
+            />
           </div>
         )}
 
@@ -570,18 +566,75 @@ function VenueBlock({
           </div>
         )}
 
-        {/* セットリスト */}
-        <div className="p-5 md:col-span-2">
-          <p className="mb-3 text-[11px] font-bold uppercase tracking-[0.1em] text-gray-500">セットリスト</p>
-          {showSetlists.length > 0 || (baseSetlist && baseSetlist.length > 0) ? (
+        {/* セットリスト（データがあるときだけ表示） */}
+        {(showSetlists.length > 0 || (baseSetlist && baseSetlist.length > 0)) && (
+          <div className="p-5 md:col-span-2">
+            <p className="mb-3 text-[11px] font-bold uppercase tracking-[0.1em] text-gray-500">セットリスト</p>
             <SetlistSelector base={baseSetlist} showSetlists={showSetlists} variant="plain" />
-          ) : (
-            <div className="flex items-center justify-center gap-2 rounded-md bg-gray-50 py-6 text-[13px] text-gray-400">
-              公演後に公開
-            </div>
-          )}
-        </div>
+          </div>
+        )}
       </div>
+    </div>
+  )
+}
+
+function lineupName(t: TicketLineup): string {
+  return t.ticketName ?? t.name ?? ""
+}
+function lineupTags(t: TicketLineup): string[] {
+  return (t.tags ?? "")
+    .split(/[/、,]/)
+    .map((s) => s.trim())
+    .filter(Boolean)
+}
+function isUpgradeTicket(t: TicketLineup): boolean {
+  const name = lineupName(t)
+  const note = t.note ?? ""
+  const price = String(t.price ?? "").trim()
+  return (
+    /VIP|アップグレード|アプグレ|ハイタッチ/i.test(name) ||
+    /アップグレード|アプグレ/.test(note) ||
+    /^[+＋]/.test(price)
+  )
+}
+
+/** チケット種別1行（VIP/アップグレードは強調＋特典タグ表示）。 */
+function TicketLineupRow({ t }: { t: TicketLineup }) {
+  const up = isUpgradeTicket(t)
+  const tags = lineupTags(t)
+  const name = lineupName(t)
+  const isNum = typeof t.price === "number"
+  const price = isNum ? `¥${(t.price as number).toLocaleString()}` : ((t.price as string) ?? "")
+  return (
+    <div
+      className={`flex items-start justify-between gap-3 border-b border-gray-100 py-2.5 last:border-0 ${
+        up ? "my-1 rounded-lg border-0 bg-gradient-to-br from-accent-50 to-transparent px-3 py-3" : ""
+      }`}
+    >
+      <div className="min-w-0">
+        <p className={`text-sm font-bold ${up ? "text-accent-700" : "text-gray-800"}`}>{name}</p>
+        {t.note && <p className="mt-0.5 text-[11px] leading-relaxed text-gray-500">{t.note}</p>}
+        {tags.length > 0 && (
+          <div className="mt-1.5 flex flex-wrap gap-1.5">
+            {tags.map((tag, i) => (
+              <span
+                key={i}
+                className="rounded bg-accent-50 px-2 py-0.5 text-[10px] font-bold text-accent-700"
+              >
+                {tag}
+              </span>
+            ))}
+          </div>
+        )}
+      </div>
+      {price && (
+        <span
+          className={`whitespace-nowrap text-base font-bold ${up ? "text-accent-700" : "text-gray-900"}`}
+        >
+          {price}
+          {isNum && <span className="ml-0.5 text-[11px] font-normal text-gray-400">税込</span>}
+        </span>
+      )}
     </div>
   )
 }

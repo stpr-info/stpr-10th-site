@@ -52,7 +52,11 @@ export type TicketVenueDate = {
 /** チケットラインナップ（名称・価格の早見） */
 export type TicketLineup = {
   ticketName?: string
-  price?: string
+  name?: string // ticketName の別キー（取込・手動データ用）
+  price?: string | number
+  note?: string // サブ注記（例: アップグレード料金 / 最速先行当選者のみ）
+  saleType?: string // 抽選 / 先着 等
+  tags?: string // 特典タグ（"/" または 、 区切り。VIP特典バッジ表示用）
 }
 
 /** 販売場所内の「券種ごとの対象公演」 */

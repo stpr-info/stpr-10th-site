@@ -229,7 +229,9 @@ export const TABLES: Record<string, TableConfig> = {
         type: "repeater",
         itemFields: [
           { name: "ticketName", label: "チケット名", type: "text" },
-          { name: "price", label: "価格", type: "text", placeholder: "¥9,000" },
+          { name: "price", label: "価格", type: "text", placeholder: "¥9,000 / +¥6,200" },
+          { name: "note", label: "サブ注記", type: "text", placeholder: "アップグレード料金 / 当選者のみ 等" },
+          { name: "tags", label: "特典タグ（/区切り）", type: "text", placeholder: "終演後ハイタッチ / VIPグッズ付き / VIP専用入場レーン" },
         ],
       },
       {
