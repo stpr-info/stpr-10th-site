@@ -106,7 +106,15 @@ export default async function LiveDetailPage({ params }: Params) {
   const { slug } = await params
   const live = await getLiveBySlug(slug)
   if (!live || live.isActive === false) notFound()
+  return <LiveDetailBody live={live} />
+}
 
+/** ライブ詳細の本体描画（PC=カードグリッド／スマホ=単一カラム）。 */
+function LiveDetailBody({
+  live,
+}: {
+  live: NonNullable<Awaited<ReturnType<typeof getLiveBySlug>>>
+}) {
   const status = getLiveStatus(live.periodStart, live.periodEnd)
   const venues = live.venues ?? []
   const members = MEMBERS.filter((m) => (live.memberSlugs ?? []).includes(m.id))
@@ -128,13 +136,30 @@ export default async function LiveDetailPage({ params }: Params) {
     .map((s) => s.trim())
     .filter((s) => /^https?:\/\//.test(s))
 
-  return (
-    <div className="space-y-12">
-      {/* ===== HERO ===== */}
+  const hasVenue = venues.length > 0
+  const hasTicket =
+    (live.ticketLineup?.length ?? 0) > 0 ||
+    (live.ticketInfo?.length ?? 0) > 0 ||
+    (live.upgradeGoodsInfo?.length ?? 0) > 0
+  const hasGoods =
+    (live.goodsImages?.length ?? 0) > 0 ||
+    (live.goodsReceiveMethods?.length ?? 0) > 0 ||
+    !!live.commonVenueLimitedGoods ||
+    !!live.commonVenueLimitedItems
+  const hasFc =
+    (live.fcInfo?.length ?? 0) > 0 ||
+    (live.liveViewing?.length ?? 0) > 0 ||
+    (live.ppvInfo?.length ?? 0) > 0
+  const hasReport =
+    !!live.hasReport &&
+    (!!live.reportLeadTitle || !!live.reportContent || !!live.officialReportUrl || reportImages.length > 0)
+
+  // ── 各セクションを変数化（variant ごとに配置を変える）──
+  const heroSection = (
+    <section>
       {/* KV はトリミングせず本来の比率を維持。
           スマホ: 画像を全幅でそのまま表示 → 情報パネルを下に。
           PC: 情報パネル（左）＋画像（右・contain で全体表示）の分割。 */}
-      <section>
         <div className="overflow-hidden rounded-2xl border border-gray-200 shadow-sm lg:grid lg:grid-cols-[minmax(0,0.92fr)_minmax(0,1.3fr)] lg:rounded-3xl">
           {/* KV（画像の比率を維持） */}
           <div className="relative flex items-center justify-center overflow-hidden bg-gray-900 lg:order-2 lg:min-h-[460px] xl:min-h-[560px] 2xl:min-h-[620px]">
@@ -204,35 +229,33 @@ export default async function LiveDetailPage({ params }: Params) {
           </div>
         </div>
       </section>
+  )
 
-      {/* ===== MEMBERS ===== */}
-      {members.length > 0 && (
+  const membersSection =
+    members.length > 0 ? (
         <section>
           <p className="mb-4 text-center text-[11px] font-bold uppercase tracking-[0.15em] text-gray-500">
             MEMBERS
           </p>
           <MemberIconRow members={members} />
         </section>
-      )}
+    ) : null
 
-      {/* 説明 */}
-      {live.description && (
+  const descriptionEl = live.description ? (
         <p className="max-w-3xl whitespace-pre-wrap text-sm leading-relaxed text-gray-700">
           {live.description}
         </p>
-      )}
+  ) : null
 
-      {/* ===== 会場・公演スケジュール（日本地図） ===== */}
-      {venues.length > 0 && (
+  const scheduleSection = hasVenue ? (
         <section>
           <SectionHeading title="会場・公演スケジュール" sub={`${venues.length}会場 / ${showCount}公演`} />
           <JapanVenueMap venues={mapVenues} />
         </section>
-      )}
+  ) : null
 
-      {/* ===== 公演情報（VenueBlock） ===== */}
-      {venues.length > 0 && (
-        <section>
+  const venueInfoSection = hasVenue ? (
+        <section id="sec-venue" className="scroll-mt-24">
           <SectionHeading title="公演情報" />
           <div className="space-y-4">
             {venues.map((v, i) => (
@@ -246,13 +269,10 @@ export default async function LiveDetailPage({ params }: Params) {
             ))}
           </div>
         </section>
-      )}
+  ) : null
 
-      {/* ===== チケット情報 ===== */}
-      {((live.ticketLineup && live.ticketLineup.length > 0) ||
-        (live.ticketInfo && live.ticketInfo.length > 0) ||
-        (live.upgradeGoodsInfo && live.upgradeGoodsInfo.length > 0)) && (
-        <section>
+  const ticketSection = hasTicket ? (
+        <section id="sec-ticket" className="scroll-mt-24">
           <SectionHeading title="チケット情報" />
           {/* PC は 種別・料金 / スケジュール を2カラム、モバイルは縦積み */}
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:items-start">
@@ -295,14 +315,10 @@ export default async function LiveDetailPage({ params }: Params) {
             </div>
           )}
         </section>
-      )}
+  ) : null
 
-      {/* ===== グッズ情報 ===== */}
-      {((live.goodsImages && live.goodsImages.length > 0) ||
-        (live.goodsReceiveMethods && live.goodsReceiveMethods.length > 0) ||
-        live.commonVenueLimitedGoods ||
-        live.commonVenueLimitedItems) && (
-        <section>
+  const goodsSection = hasGoods ? (
+        <section id="sec-goods" className="scroll-mt-24">
           <SectionHeading title="グッズ情報" />
           {live.goodsImages && live.goodsImages.length > 0 && (
             <div className="mb-3">
@@ -347,13 +363,10 @@ export default async function LiveDetailPage({ params }: Params) {
             </div>
           )}
         </section>
-      )}
+  ) : null
 
-      {/* ===== FC情報・ライブビューイング・PPV ===== */}
-      {((live.fcInfo && live.fcInfo.length > 0) ||
-        (live.liveViewing && live.liveViewing.length > 0) ||
-        (live.ppvInfo && live.ppvInfo.length > 0)) && (
-        <section>
+  const fcSection = hasFc ? (
+        <section id="sec-fc" className="scroll-mt-24">
           <SectionHeading title="FC・配信情報" />
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             {live.fcInfo && live.fcInfo.length > 0 && (
@@ -416,15 +429,10 @@ export default async function LiveDetailPage({ params }: Params) {
             )}
           </div>
         </section>
-      )}
+  ) : null
 
-      {/* ===== ライブレポート ===== */}
-      {live.hasReport &&
-        (live.reportLeadTitle ||
-          live.reportContent ||
-          live.officialReportUrl ||
-          reportImages.length > 0) && (
-          <section>
+  const reportSection = hasReport ? (
+          <section id="sec-report" className="scroll-mt-24">
             <SectionHeading title="ライブレポート" />
             {live.officialReportUrl && (
               <a
@@ -462,7 +470,24 @@ export default async function LiveDetailPage({ params }: Params) {
               </div>
             )}
           </section>
-        )}
+  ) : null
+
+  // PC: 左=公演情報 / 右=チケット・グッズ・FC のカードグリッド（スマホは単一カラム）。
+  return (
+    <div className="space-y-10">
+      {heroSection}
+      {membersSection}
+      {descriptionEl}
+      {scheduleSection}
+      <div className="lg:grid lg:grid-cols-2 lg:items-start lg:gap-6">
+        <div className="space-y-8">{venueInfoSection}</div>
+        <div className="space-y-8">
+          {ticketSection}
+          {goodsSection}
+          {fcSection}
+        </div>
+      </div>
+      {reportSection}
     </div>
   )
 }
