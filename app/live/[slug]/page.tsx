@@ -3,8 +3,10 @@ import Link from "next/link"
 import { notFound } from "next/navigation"
 import { getLiveBySlug } from "@/lib/repo"
 import { getGroupName } from "@/data/groups"
-import { formatPeriod, formatVenueName, getLiveStatus } from "@/lib/utils"
+import { formatDateDot, formatPeriod, formatVenueName, getLiveStatus } from "@/lib/utils"
 import SetlistSelector from "@/components/live/SetlistSelector"
+import JapanVenueMap, { type VenueMapItem } from "@/components/live/JapanVenueMap"
+import ReportFlipBook from "@/components/live/ReportFlipBook"
 
 type Params = { params: Promise<{ slug: string }> }
 
@@ -36,6 +38,27 @@ export default async function LiveDetailPage({ params }: Params) {
     { label: "公式レポート", url: live.officialReportUrl },
     { label: "非公式レポート", url: live.unofficialReportUrl },
   ]
+
+  // 日本地図ピン用に会場データを整形（都道府県・日程ラベル）。
+  const mapVenues: VenueMapItem[] = venues.map((v) => {
+    const dates = (v.shows ?? [])
+      .map((s) => s.date)
+      .filter((d): d is string => !!d)
+      .sort()
+    const dateLabel =
+      dates.length === 0
+        ? ""
+        : dates[0] === dates[dates.length - 1]
+          ? formatDateDot(dates[0])
+          : `${formatDateDot(dates[0])}〜${formatDateDot(dates[dates.length - 1])}`
+    return { name: v.venueName, prefecture: v.prefecture, dateLabel }
+  })
+
+  // ライブレポートギャラリー（改行/カンマ区切りの画像URL）→ 配列。
+  const reportImages = (live.reportGallery ?? "")
+    .split(/[\n,]+/)
+    .map((s) => s.trim())
+    .filter((s) => /^https?:\/\//.test(s))
 
   return (
     <article>
@@ -109,9 +132,14 @@ export default async function LiveDetailPage({ params }: Params) {
             <span aria-hidden className="inline-block h-5 w-1 rounded-sm bg-accent-600" />
             会場・公演
           </h2>
+          <JapanVenueMap venues={mapVenues} />
           <div className="space-y-4">
             {venues.map((v, i) => (
-              <div key={i} className="rounded-xl border border-gray-200 bg-white p-4">
+              <div
+                key={i}
+                id={`venue-${i}`}
+                className="scroll-mt-20 rounded-xl border border-gray-200 bg-white p-4"
+              >
                 <p className="font-semibold text-gray-800">{formatVenueName(v)}</p>
                 {v.shows && v.shows.length > 0 && (
                   <ul className="mt-2 space-y-1 text-sm text-gray-600">
@@ -165,27 +193,36 @@ export default async function LiveDetailPage({ params }: Params) {
       )}
 
       {/* レポート */}
-      {live.hasReport && (live.reportLeadTitle || live.reportContent) && (
-        <section className="mt-8">
-          <h2 className="mb-3 flex items-center gap-2 text-base font-bold text-gray-900">
-            <span aria-hidden className="inline-block h-5 w-1 rounded-sm bg-accent-600" />
-            ライブレポート
-          </h2>
-          {live.reportThumbnail && (
-            <div style={{ aspectRatio: "16 / 9" }} className="mb-3 overflow-hidden rounded-xl bg-gray-100">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={live.reportThumbnail} alt="" className="h-full w-full object-cover" />
-            </div>
-          )}
-          {live.reportLeadTitle && <p className="mb-2 font-bold text-gray-900">{live.reportLeadTitle}</p>}
-          {live.reportContent && (
-            <div
-              className="prose prose-sm max-w-none text-gray-700"
-              dangerouslySetInnerHTML={{ __html: live.reportContent }}
-            />
-          )}
-        </section>
-      )}
+      {live.hasReport &&
+        (live.reportLeadTitle || live.reportContent || reportImages.length > 0) && (
+          <section className="mt-8">
+            <h2 className="mb-3 flex items-center gap-2 text-base font-bold text-gray-900">
+              <span aria-hidden className="inline-block h-5 w-1 rounded-sm bg-accent-600" />
+              ライブレポート
+            </h2>
+            {live.reportThumbnail && (
+              <div style={{ aspectRatio: "16 / 9" }} className="mb-3 overflow-hidden rounded-xl bg-gray-100">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={live.reportThumbnail} alt="" className="h-full w-full object-cover" />
+              </div>
+            )}
+            {live.reportLeadTitle && <p className="mb-2 font-bold text-gray-900">{live.reportLeadTitle}</p>}
+            {live.reportContent && (
+              <div
+                className="prose prose-sm max-w-none text-gray-700"
+                dangerouslySetInnerHTML={{ __html: live.reportContent }}
+              />
+            )}
+            {reportImages.length > 0 && (
+              <div className="mt-4">
+                <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.1em] text-gray-500">
+                  フォトレポート（雑誌風）
+                </p>
+                <ReportFlipBook images={reportImages} />
+              </div>
+            )}
+          </section>
+        )}
     </article>
   )
 }
