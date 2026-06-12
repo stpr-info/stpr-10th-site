@@ -16,6 +16,7 @@ import type {
   ShowSetlist,
   PpvInfo,
   LiveViewing,
+  LiveVideo,
 } from "@/data/lives"
 import type { Goods } from "@/data/goods"
 import type {
@@ -111,6 +112,7 @@ function toLive(r: Record<string, unknown>): Live {
     showSetlists: jsonArr<ShowSetlist>(r.show_setlists),
     ppvInfo: jsonArr<PpvInfo>(r.ppv_info),
     liveViewing: jsonArr<LiveViewing>(r.live_viewing),
+    liveVideos: jsonArr<LiveVideo>(r.live_videos),
     fcInfo: strArr(r.fc_info),
     upgradeGoodsInfo: strArr(r.upgrade_goods_info),
     officialSiteUrl: u(r.official_site_url as string | null),

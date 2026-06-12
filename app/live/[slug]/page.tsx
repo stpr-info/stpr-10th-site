@@ -3,8 +3,23 @@ import { notFound } from "next/navigation"
 import { getLiveBySlug } from "@/lib/repo"
 import { getGroupName } from "@/data/groups"
 import { MEMBERS } from "@/data/members"
-import { formatDateDot, formatPeriod, getLiveStatus, getTicketStatus } from "@/lib/utils"
-import type { Live, Venue, TicketInfo, TicketLineup, TicketSalesOutlet, SetlistItem } from "@/data/lives"
+import {
+  extractYoutubeId,
+  formatDateDot,
+  formatPeriod,
+  getLiveStatus,
+  getTicketStatus,
+  getYoutubeThumbnail,
+} from "@/lib/utils"
+import type {
+  Live,
+  Venue,
+  TicketInfo,
+  TicketLineup,
+  TicketSalesOutlet,
+  SetlistItem,
+  LiveVideo,
+} from "@/data/lives"
 import SetlistSelector from "@/components/live/SetlistSelector"
 import JapanVenueMap, { type VenueMapItem } from "@/components/live/JapanVenueMap"
 import { VENUE_COLORS } from "@/components/live/venue-colors"
@@ -150,6 +165,8 @@ function LiveDetailBody({
     (live.fcInfo?.length ?? 0) > 0 ||
     (live.liveViewing?.length ?? 0) > 0 ||
     (live.ppvInfo?.length ?? 0) > 0
+  const videos = (live.liveVideos ?? []).filter((v) => v.youtubeUrl || v.thumbnail)
+  const hasVideos = videos.length > 0
   const hasReport =
     !!live.hasReport &&
     (!!live.reportLeadTitle || !!live.reportContent || !!live.officialReportUrl || reportImages.length > 0)
@@ -472,6 +489,17 @@ function LiveDetailBody({
           </section>
   ) : null
 
+  const videoSection = hasVideos ? (
+        <section id="sec-video" className="scroll-mt-24">
+          <SectionHeading title="ライブ映像" sub={`${videos.length}本`} />
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {videos.map((v, i) => (
+              <LiveVideoCard key={i} video={v} />
+            ))}
+          </div>
+        </section>
+  ) : null
+
   // PC: 左=公演情報 / 右=チケット・グッズ・FC のカードグリッド（スマホは単一カラム）。
   return (
     <div className="space-y-10">
@@ -487,8 +515,58 @@ function LiveDetailBody({
           {fcSection}
         </div>
       </div>
+      {videoSection}
       {reportSection}
     </div>
+  )
+}
+
+/** ライブ映像カード：YouTube サムネ → クリックで別タブで開く。 */
+function LiveVideoCard({ video }: { video: LiveVideo }) {
+  const id = extractYoutubeId(video.youtubeUrl)
+  const thumb = video.thumbnail || (id ? getYoutubeThumbnail(id) : undefined)
+  const href = video.youtubeUrl || (id ? `https://www.youtube.com/watch?v=${id}` : undefined)
+  const inner = (
+    <>
+      <div className="relative aspect-video overflow-hidden bg-gray-900">
+        {thumb ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={thumb}
+            alt={video.title || "ライブ映像"}
+            className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+          />
+        ) : (
+          <div className="flex h-full w-full items-center justify-center text-xs text-white/60">
+            NO THUMBNAIL
+          </div>
+        )}
+        {/* 再生アイコン */}
+        <span className="absolute inset-0 flex items-center justify-center">
+          <span className="flex h-12 w-12 items-center justify-center rounded-full bg-black/55 text-white transition-colors group-hover:bg-red-600">
+            <span className="ml-0.5 border-y-[8px] border-l-[13px] border-y-transparent border-l-white" />
+          </span>
+        </span>
+      </div>
+      {video.title && (
+        <p className="line-clamp-2 px-3 py-2.5 text-sm font-bold text-gray-800">{video.title}</p>
+      )}
+    </>
+  )
+  if (!href) {
+    return (
+      <div className="group overflow-hidden rounded-xl border border-gray-200 bg-white">{inner}</div>
+    )
+  }
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="group block overflow-hidden rounded-xl border border-gray-200 bg-white transition-shadow hover:shadow-md"
+    >
+      {inner}
+    </a>
   )
 }
 
@@ -601,6 +679,26 @@ function VenueBlock({
 
       {/* サブ情報グリッド */}
       <div className="grid grid-cols-1 md:grid-cols-2">
+        {/* 集合写真（公演ごと） */}
+        {shows.some((s) => (s.groupPhotos?.length ?? 0) > 0) && (
+          <div className="border-b border-gray-200 p-5 md:col-span-2">
+            <p className="mb-3 text-[11px] font-bold uppercase tracking-[0.1em] text-gray-500">集合写真</p>
+            <div className="space-y-4">
+              {shows
+                .filter((s) => (s.groupPhotos?.length ?? 0) > 0)
+                .map((s, j) => (
+                  <div key={j}>
+                    <p className="mb-2 text-xs font-bold text-gray-600">
+                      {s.date ? formatDateDot(s.date) : ""}
+                      {s.partLabel && <span className="ml-1.5 text-gray-400">{s.partLabel}</span>}
+                    </p>
+                    <ImageGallery images={s.groupPhotos!} />
+                  </div>
+                ))}
+            </div>
+          </div>
+        )}
+
         {/* 会場MAP（会場MAP画像が登録されているときだけ表示） */}
         {venue.areaMapImage && (
           <div className="border-b border-gray-200 p-5 md:border-r">

@@ -191,6 +191,7 @@ export const TABLES: Record<string, TableConfig> = {
               { name: "date", label: "公演日", type: "text", placeholder: "2026-06-04" },
               { name: "partLabel", label: "部", type: "text", placeholder: "昼の部" },
               { name: "scheduleText", label: "スケジュール", type: "text", placeholder: "開場16:00/開演17:00" },
+              { name: "groupPhotos", label: "集合写真（複数）", type: "image", multiple: true },
             ],
           },
           {
@@ -347,6 +348,17 @@ export const TABLES: Record<string, TableConfig> = {
           { name: "theatersUrl", label: "劇場一覧URL", type: "text" },
           { name: "purchaseUrl", label: "購入URL", type: "text" },
           { name: "info", label: "補足", type: "textarea" },
+        ],
+      },
+      {
+        name: "live_videos",
+        label: "ライブ映像（YouTube）",
+        type: "repeater",
+        help: "YouTubeのURLを入れるとサムネは自動表示。サムネを差し替えたいときだけ画像を指定。",
+        itemFields: [
+          { name: "youtubeUrl", label: "YouTube URL", type: "text", placeholder: "https://youtu.be/xxxxxxxxxxx" },
+          { name: "title", label: "タイトル（任意）", type: "text" },
+          { name: "thumbnail", label: "サムネ（任意・未指定ならYouTubeから自動）", type: "image" },
         ],
       },
       { name: "fc_info", label: "FC情報 画像", type: "image", multiple: true },

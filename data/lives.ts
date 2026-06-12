@@ -17,6 +17,14 @@ export type Show = {
   partLabel?: string // "昼の部" 等
   scheduleText?: string // "開場16:00/開演17:00" 等
   setlist?: SetlistItem[]
+  groupPhotos?: string[] // この公演の集合写真（公開URL[]）
+}
+
+/** ライブ映像（YouTube）。サムネ→クリックで YouTube を開く。 */
+export type LiveVideo = {
+  youtubeUrl?: string
+  title?: string
+  thumbnail?: string // 未指定なら youtubeUrl から自動でサムネ生成
 }
 
 /** 公演ごとのセットリスト（会場・日付・部ごとにセトリが変わる場合） */
@@ -172,6 +180,7 @@ export type Live = {
   showSetlists?: ShowSetlist[] // 公演ごとのセットリスト
   ppvInfo?: PpvInfo[]
   liveViewing?: LiveViewing[]
+  liveVideos?: LiveVideo[] // ライブ映像（YouTube）一覧
   fcInfo?: string[] // 画像URL[]
   upgradeGoodsInfo?: string[] // 画像URL[]
   officialSiteUrl?: string
