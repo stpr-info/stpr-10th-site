@@ -19,6 +19,9 @@ import type {
   LiveVideo,
 } from "@/data/lives"
 import type { Goods } from "@/data/goods"
+import type { GroupSlug } from "@/data/groups"
+import type { NewsPost, NewsCategory } from "@/data/newsPosts"
+import type { ScheduleEvent, ScheduleType } from "@/data/scheduleEvents"
 import type {
   Event,
   EventStore,
@@ -276,6 +279,90 @@ export async function getLiveBySlug(slug: string): Promise<Live | undefined> {
     .maybeSingle()
   if (error || !data) return undefined
   return toLive(data as Row)
+}
+
+// === NEWS ===
+const NEWS_CATS = new Set(["live", "goods", "ticket", "media", "other"])
+
+/** richtext(HTML) → プレーンテキスト（ブロック終端を改行に）。 */
+function htmlToPlain(html: string): string {
+  return html
+    .replace(/<\/(p|div|h[1-6]|li|tr)>/gi, "\n")
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<[^>]+>/g, "")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim()
+}
+
+function toNewsPost(r: Row): NewsPost {
+  const groups = Array.isArray(r.group_slugs) ? (r.group_slugs as string[]) : []
+  const cat = typeof r.category === "string" && NEWS_CATS.has(r.category) ? (r.category as NewsCategory) : "other"
+  const plain = htmlToPlain(typeof r.body === "string" ? r.body : "")
+  return {
+    id: String(r.id),
+    title: String(r.title ?? ""),
+    category: cat,
+    groupSlug: ((groups[0] as GroupSlug) ?? "Strawberry_Prince"),
+    publishedAt: String(r.published_at ?? r.created_at ?? ""),
+    excerpt: plain.replace(/\n+/g, " ").slice(0, 90),
+    body: plain,
+    thumbnail: typeof r.thumbnail === "string" && r.thumbnail ? r.thumbnail : undefined,
+    isBreaking: r.is_breaking === true,
+    isFeatured: r.is_featured === true,
+    spoiler: r.spoiler === true,
+    author: "STPR運営",
+  }
+}
+
+/** 公開 NEWS：status=published のみ、公開日時の新しい順。 */
+export async function getNews(): Promise<NewsPost[]> {
+  const { data, error } = await read()
+    .from("news")
+    .select("*")
+    .eq("status", "published")
+    .order("published_at", { ascending: false, nullsFirst: false })
+    .order("created_at", { ascending: false })
+  if (error || !data) return []
+  return (data as Row[]).map(toNewsPost)
+}
+
+/** 公開 NEWS 単体取得（status=published のみ）。 */
+export async function getNewsById(id: string): Promise<NewsPost | undefined> {
+  const { data, error } = await read()
+    .from("news")
+    .select("*")
+    .eq("id", id)
+    .eq("status", "published")
+    .maybeSingle()
+  if (error || !data) return undefined
+  return toNewsPost(data as Row)
+}
+
+// === SCHEDULE ===
+const SCHED_TYPES = new Set(["live", "event", "goods", "ticket", "stream"])
+
+function toScheduleEvent(r: Row): ScheduleEvent {
+  const t = typeof r.type === "string" && SCHED_TYPES.has(r.type) ? (r.type as ScheduleType) : "event"
+  return {
+    id: String(r.id),
+    title: String(r.title ?? ""),
+    groupSlug: ((typeof r.group_slug === "string" ? r.group_slug : "Strawberry_Prince") as GroupSlug),
+    type: t,
+    start: String(r.start_at ?? ""),
+    end: typeof r.end_at === "string" && r.end_at ? r.end_at : undefined,
+    venue: typeof r.venue === "string" && r.venue ? r.venue : undefined,
+    note: typeof r.note === "string" && r.note ? r.note : undefined,
+  }
+}
+
+/** 公開 SCHEDULE：開始日時の昇順。 */
+export async function getSchedules(): Promise<ScheduleEvent[]> {
+  const { data, error } = await read()
+    .from("schedules")
+    .select("*")
+    .order("start_at", { ascending: true, nullsFirst: false })
+  if (error || !data) return []
+  return (data as Row[]).map(toScheduleEvent)
 }
 
 /**

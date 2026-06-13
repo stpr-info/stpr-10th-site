@@ -2,8 +2,9 @@
 
 import Link from "next/link"
 import { useActionState, useEffect, useRef } from "react"
-import type { Field } from "@/lib/admin/tables"
+import { getTableConfig, type Field } from "@/lib/admin/tables"
 import type { FormState } from "@/lib/admin/crud-actions"
+import ChipMultiSelect from "./ChipMultiSelect"
 import ImageField from "./ImageField"
 import ImageListField from "./ImageListField"
 import RepeaterField from "./RepeaterField"
@@ -69,6 +70,9 @@ export default function RecordForm({
   const [state, formAction, pending] = useActionState(action, {})
   const slugRef = useRef<HTMLInputElement>(null)
   const formRef = useRef<HTMLFormElement>(null)
+  const statusRef = useRef<HTMLInputElement>(null)
+  // 投稿方法ボタン（下書き/予約/即時公開）を出すテーブルか。
+  const postMethods = getTableConfig(table)?.postMethods === true
 
   // 新規作成（複製含む）で slug が空なら自動採番する。SSR は空のまま描画し、
   // マウント後にクライアントで埋めることでハイドレーション不整合を避ける。
@@ -91,7 +95,9 @@ export default function RecordForm({
         }
       }}
     >
-      {fields.map((field) => {
+      {fields
+        .filter((field) => !(postMethods && field.name === "status"))
+        .map((field) => {
         const value = initial ? initial[field.name] : undefined
         const inputValue = toInputValue(field, value)
         // boolean は基本 false 初期。ただし is_active（公開フラグ・DB既定 true）は
@@ -190,34 +196,24 @@ export default function RecordForm({
             )}
 
             {field.type === "multiselect" && (
-              <>
-                <select
-                  name={field.name}
-                  multiple
-                  defaultValue={Array.isArray(value) ? value.map(String) : []}
-                  size={Math.min(field.options?.length ?? 4, 8)}
-                  className="rounded-xl border border-gold-200 bg-white px-3 py-2 text-sm outline-none transition-colors focus:border-gold-400 focus:ring-2 focus:ring-gold-100"
-                >
-                  {field.options?.map((opt) => (
-                    <option key={opt} value={opt}>
-                      {field.optionLabels?.[opt] ?? opt}
-                    </option>
-                  ))}
-                </select>
-                <span className="text-[11px] text-[#9a8aa0]">
-                  Ctrl（Mac は ⌘）+クリックで複数選択
-                </span>
-              </>
+              <ChipMultiSelect
+                name={field.name}
+                options={field.options ?? []}
+                optionLabels={field.optionLabels}
+                initial={Array.isArray(value) ? value.map(String) : []}
+              />
             )}
 
             {field.type === "boolean" && (
-              <span className="flex items-center gap-2">
+              <span className="flex items-center gap-3">
+                {/* トグルスイッチ（sr-only の checkbox を peer で連動）。 */}
                 <input
                   type="checkbox"
                   name={field.name}
                   defaultChecked={checked}
-                  className="h-4 w-4 accent-gold-400"
+                  className="peer sr-only"
                 />
+                <span className="relative h-6 w-11 shrink-0 rounded-full bg-[#d8d3c4] transition-colors after:absolute after:left-0.5 after:top-0.5 after:h-5 after:w-5 after:rounded-full after:bg-white after:shadow after:transition-transform after:content-[''] peer-checked:bg-gold-400 peer-checked:after:translate-x-5" />
                 <span className="text-xs text-[#9a8aa0]">有効にする</span>
               </span>
             )}
@@ -261,6 +257,46 @@ export default function RecordForm({
             <Link
               href={cancelHref}
               className="rounded-full border border-gold-200 px-6 py-2.5 text-sm text-[#6a5570] transition-colors hover:bg-gold-50"
+            >
+              キャンセル
+            </Link>
+          </>
+        ) : postMethods ? (
+          <>
+            <span className="w-full text-xs font-medium tracking-wider text-gold-700">投稿方法</span>
+            <input
+              type="hidden"
+              name="status"
+              ref={statusRef}
+              defaultValue={(initial?.status as string) ?? "published"}
+            />
+            <button
+              type="submit"
+              disabled={pending}
+              onClick={() => { if (statusRef.current) statusRef.current.value = "draft" }}
+              className="rounded-full border border-gold-200 bg-white px-6 py-2.5 text-sm text-[#6a5570] transition-colors hover:bg-gold-50 disabled:opacity-50"
+            >
+              下書き保存
+            </button>
+            <button
+              type="submit"
+              disabled={pending}
+              onClick={() => { if (statusRef.current) statusRef.current.value = "scheduled" }}
+              className="rounded-full border border-gold-300 bg-gold-50 px-6 py-2.5 text-sm font-medium text-gold-700 transition-colors hover:bg-gold-100 disabled:opacity-50"
+            >
+              予約投稿
+            </button>
+            <button
+              type="submit"
+              disabled={pending}
+              onClick={() => { if (statusRef.current) statusRef.current.value = "published" }}
+              className="rounded-full bg-gold-400 px-8 py-2.5 font-display text-sm tracking-[0.15em] text-white transition-colors hover:bg-gold-500 disabled:opacity-50"
+            >
+              {pending ? "保存中…" : "即時公開"}
+            </button>
+            <Link
+              href={cancelHref}
+              className="ml-auto rounded-full border border-gold-200 px-6 py-2.5 text-sm text-[#6a5570] transition-colors hover:bg-gold-50"
             >
               キャンセル
             </Link>
