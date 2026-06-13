@@ -70,6 +70,9 @@ export type TableConfig = {
   fields: Field[]
   listColumns: string[] // 一覧に出す列
   titleField: string // 行の代表表示に使う列
+  /** true で編集フォームに「下書き保存／予約投稿／即時公開」ボタンを出し、
+   *  status 列（draft/scheduled/published）をそのボタンで設定する。 */
+  postMethods?: boolean
 }
 
 /** 「チケット販売場所・対象公演・購入URL」共通フィールド（チケット情報と会場日付で再利用）。
@@ -104,7 +107,65 @@ const TICKET_SALES_OUTLETS_FIELD: SubField = {
   ],
 }
 
+// グループ選択肢（data/groups.ts と一致させる）。
+const GROUP_OPTIONS = ["Strawberry_Prince", "knightX", "amptak", "Meteorites", "SneakerStep", "True_Lip"]
+const GROUP_OPTION_LABELS: Record<string, string> = {
+  Strawberry_Prince: "すとぷり",
+  knightX: "騎士X",
+  amptak: "AMPTAK×COLORS",
+  Meteorites: "Meteorites",
+  SneakerStep: "すにすて",
+  True_Lip: "とぅるりぷ",
+}
+
 export const TABLES: Record<string, TableConfig> = {
+  news: {
+    key: "news",
+    label: "ニュース",
+    titleField: "title",
+    listColumns: ["title", "category", "status", "published_at"],
+    postMethods: true,
+    fields: [
+      { name: "title", label: "タイトル", type: "text", required: true },
+      { name: "body", label: "本文", type: "richtext" },
+      { name: "group_slugs", label: "グループ（複数選択可）", type: "multiselect", options: GROUP_OPTIONS, optionLabels: GROUP_OPTION_LABELS },
+      {
+        name: "category",
+        label: "カテゴリ",
+        type: "select",
+        options: ["live", "goods", "ticket", "media", "other"],
+        optionLabels: { live: "ライブ", goods: "グッズ", ticket: "チケット", media: "メディア", other: "その他" },
+      },
+      { name: "thumbnail", label: "サムネイル画像", type: "image" },
+      { name: "is_breaking", label: "速報として配信", type: "boolean" },
+      { name: "is_featured", label: "注目ニュースに設定", type: "boolean" },
+      { name: "spoiler", label: "ネタバレ注意", type: "boolean" },
+      { name: "published_at", label: "公開日時", type: "date" },
+      // status は postMethods のボタンで設定（フォームには出さない）。
+      { name: "status", label: "ステータス", type: "select", options: ["draft", "scheduled", "published"], optionLabels: { draft: "下書き", scheduled: "予約", published: "公開" } },
+    ],
+  },
+  schedules: {
+    key: "schedules",
+    label: "スケジュール",
+    titleField: "title",
+    listColumns: ["title", "group_slug", "type", "start_at"],
+    fields: [
+      { name: "title", label: "タイトル", type: "text", required: true },
+      { name: "group_slug", label: "グループ", type: "select", options: GROUP_OPTIONS, optionLabels: GROUP_OPTION_LABELS },
+      {
+        name: "type",
+        label: "種別",
+        type: "select",
+        options: ["live", "event", "goods", "ticket", "stream"],
+        optionLabels: { live: "ライブ", event: "イベント", goods: "グッズ", ticket: "チケット", stream: "配信" },
+      },
+      { name: "start_at", label: "開始日時", type: "text", placeholder: "2026-06-15T18:00", help: "ISO 形式（YYYY-MM-DDThh:mm）で入力。" },
+      { name: "end_at", label: "終了日時（任意）", type: "text", placeholder: "2026-06-15T20:00" },
+      { name: "venue", label: "会場", type: "text" },
+      { name: "note", label: "備考", type: "textarea" },
+    ],
+  },
   lives: {
     key: "lives",
     label: "ライブ",
