@@ -39,20 +39,14 @@ function NavLink({ label, href }: { label: string; href: string }) {
 function Logo() {
   return (
     <a href="/live" className="block shrink-0 leading-none">
-      <span className="flex items-center justify-center gap-1 text-[11px] font-extrabold tracking-[0.18em]">
-        <span className="text-[#f5c33b]">✦</span>
-        <span className="text-[#ec4899]">非公式</span>
-        <span className="text-[#f5c33b]">✦</span>
-      </span>
-      <span className="mt-0.5 flex items-baseline">
-        <span className="text-[27px] font-black tracking-tight text-[#1b97e0] md:text-[33px]">
-          STPR<span className="text-[#ec4899]">.</span>
-        </span>
-        <span className="text-[20px] font-black tracking-tight md:text-[24px]">
-          <span className="text-[#ec4899]">ファン</span>
-          <span className="text-[#1b97e0]">サイト</span>
-        </span>
-      </span>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src="/logo-fansite.png"
+        alt="STPR非公式ファンサイト"
+        width={355}
+        height={75}
+        className="h-9 w-auto md:h-11"
+      />
     </a>
   )
 }
