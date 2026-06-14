@@ -2,23 +2,25 @@
 
 import { useState } from "react"
 
-// リンク先はあとで差し替え（# は仮）。ライブは本サイトの /live を指す。
+// 外部リンクは本家ファンサイト（stprinformalfansite.com）。ライブは本サイトの /live。
+// ※「とぅるりぷ」のリンクは未提供のため仮（#）。
+const FAN = "https://www.stprinformalfansite.com"
 const GROUP_LINKS: { label: string; href: string }[] = [
-  { label: "STPR Family", href: "#" },
-  { label: "すとぷり", href: "#" },
-  { label: "騎士X", href: "#" },
-  { label: "AMPTAK", href: "#" },
-  { label: "めておら", href: "#" },
-  { label: "すにすて", href: "#" },
+  { label: "STPR Family", href: `${FAN}/stpr-family` },
+  { label: "すとぷり", href: `${FAN}/stpr` },
+  { label: "騎士X", href: `${FAN}/knightax` },
+  { label: "AMPTAK", href: `${FAN}/amptak` },
+  { label: "めておら", href: `${FAN}/meteorites` },
+  { label: "すにすて", href: `${FAN}/sneakerstep` },
   { label: "とぅるりぷ", href: "#" },
 ]
 const SECTION_LINKS: { label: string; href: string }[] = [
-  { label: "STPRを初めてみる方へ", href: "#" },
-  { label: "ユニット", href: "#" },
+  { label: "STPRを初めてみる方へ", href: `${FAN}/stpr-for-beginners` },
+  { label: "ユニット", href: `${FAN}/%E3%83%A6%E3%83%8B%E3%83%83%E3%83%88` },
   { label: "ライブ", href: "/live" },
-  { label: "イベント", href: "#" },
-  { label: "グッズ", href: "#" },
-  { label: "素材", href: "#" },
+  { label: "イベント", href: `${FAN}/%E3%82%A4%E3%83%99%E3%83%B3%E3%83%88` },
+  { label: "グッズ", href: `${FAN}/%E3%82%B0%E3%83%83%E3%82%BA` },
+  { label: "素材", href: `${FAN}/sozai` },
 ]
 
 const NAVY = "#1a347e"
