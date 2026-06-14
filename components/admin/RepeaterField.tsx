@@ -499,6 +499,14 @@ function RowsEditor({
     const copy = JSON.parse(JSON.stringify(rows[i])) as Row
     onChange([...rows.slice(0, i + 1), copy, ...rows.slice(i + 1)])
   }
+  // 行を上下に並び替え。
+  const moveRow = (i: number, dir: -1 | 1) => {
+    const j = i + dir
+    if (j < 0 || j >= rows.length) return
+    const next = [...rows]
+    ;[next[i], next[j]] = [next[j], next[i]]
+    onChange(next)
+  }
 
   return (
     <div className="flex flex-col gap-3">
@@ -519,6 +527,26 @@ function RowsEditor({
               #{i + 1}
             </span>
             <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1">
+                <button
+                  type="button"
+                  onClick={() => moveRow(i, -1)}
+                  disabled={i === 0}
+                  aria-label="上へ移動"
+                  className="flex h-6 w-6 items-center justify-center rounded-full border border-gold-300 bg-white text-[12px] text-gold-700 transition-colors hover:bg-gold-50 disabled:opacity-30"
+                >
+                  ↑
+                </button>
+                <button
+                  type="button"
+                  onClick={() => moveRow(i, 1)}
+                  disabled={i === rows.length - 1}
+                  aria-label="下へ移動"
+                  className="flex h-6 w-6 items-center justify-center rounded-full border border-gold-300 bg-white text-[12px] text-gold-700 transition-colors hover:bg-gold-50 disabled:opacity-30"
+                >
+                  ↓
+                </button>
+              </div>
               <button
                 type="button"
                 onClick={() => duplicateRow(i)}
