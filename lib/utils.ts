@@ -23,14 +23,16 @@ import type { Movie } from "@/data/movies"
  * 比較は日単位（時刻を切り捨て）で行う。
  */
 export function getLiveStatus(startDate?: string, endDate?: string): LiveStatus {
-  if (!startDate) return "coming"
+  // 和暦 / スラッシュ / ISO どの表記でも解釈する。
+  const start = parseFlexDateTime(startDate)
+  if (!start) return "coming"
 
   const today = startOfDay(new Date())
-  const start = startOfDay(new Date(startDate))
-  const end = startOfDay(new Date(endDate ?? startDate))
+  const startDay = startOfDay(start)
+  const endDay = startOfDay(parseFlexDateTime(endDate) ?? start)
 
-  if (today < start) return "coming"
-  if (today > end) return "finished"
+  if (today < startDay) return "coming"
+  if (today > endDay) return "finished"
   return "ongoing"
 }
 
@@ -72,6 +74,14 @@ function parseFlexDateTime(s?: string, fallbackYear?: number): Date | null {
   if (!y) return null
   const dt = new Date(y, Number(m[2]) - 1, Number(m[3]), m[4] ? Number(m[4]) : 0, m[5] ? Number(m[5]) : 0)
   return Number.isNaN(dt.getTime()) ? null : dt
+}
+
+/**
+ * どんな日付表記でも Date に解釈する（公演日など）。
+ * 対応例: "2026-06-04" / "2026-06-20T00:00:00+00:00" / "2026年6月4日" / "2026/6/4"
+ */
+export function parseAnyDate(s?: string): Date | null {
+  return parseFlexDateTime(s)
 }
 
 /** 販売期間の自由文字列（"…～…"）から開始・終了 Date を抽出。 */
@@ -133,9 +143,16 @@ export function formatDate(dateStr: string): string {
 export function formatDateDot(dateStr?: string): string {
   if (!dateStr) return ""
   const m = /^(\d{4})-(\d{1,2})-(\d{1,2})/.exec(dateStr)
-  if (!m) return dateStr
-  const [, y, mo, d] = m
-  return `${y}.${mo.padStart(2, "0")}.${d.padStart(2, "0")}`
+  if (m) {
+    const [, y, mo, d] = m
+    return `${y}.${mo.padStart(2, "0")}.${d.padStart(2, "0")}`
+  }
+  // 和暦 / スラッシュ等もドット区切りに整形（解釈不能ならそのまま）。
+  const dt = parseFlexDateTime(dateStr)
+  if (dt) {
+    return `${dt.getFullYear()}.${String(dt.getMonth() + 1).padStart(2, "0")}.${String(dt.getDate()).padStart(2, "0")}`
+  }
+  return dateStr
 }
 
 /**
@@ -155,12 +172,11 @@ export function formatPeriod(start?: string, end?: string): string {
  * カウントダウン表示用（force-dynamic ページでサーバー描画）。
  */
 export function getDaysUntil(dateStr?: string): number | null {
-  if (!dateStr) return null
-  const m = /^(\d{4})-(\d{1,2})-(\d{1,2})/.exec(dateStr)
-  if (!m) return null
+  const dt = parseFlexDateTime(dateStr)
+  if (!dt) return null
   const now = new Date()
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
-  const target = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]))
+  const target = new Date(dt.getFullYear(), dt.getMonth(), dt.getDate())
   return Math.round((target.getTime() - today.getTime()) / 86400000)
 }
 

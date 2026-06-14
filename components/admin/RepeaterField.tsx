@@ -494,6 +494,11 @@ function RowsEditor({
   }
   const addRow = () => onChange([...rows, emptyRow(itemFields)])
   const removeRow = (i: number) => onChange(rows.filter((_, idx) => idx !== i))
+  // この行をコピーして直後に挿入（公演リスト・会場公演などの複製用）。
+  const duplicateRow = (i: number) => {
+    const copy = JSON.parse(JSON.stringify(rows[i])) as Row
+    onChange([...rows.slice(0, i + 1), copy, ...rows.slice(i + 1)])
+  }
 
   return (
     <div className="flex flex-col gap-3">
@@ -513,13 +518,22 @@ function RowsEditor({
             <span className="font-display text-[11px] tracking-wider text-gold-500">
               #{i + 1}
             </span>
-            <button
-              type="button"
-              onClick={() => removeRow(i)}
-              className="rounded-full border border-rose-300 px-3 py-0.5 text-[11px] text-rose-500 transition-colors hover:bg-rose-50"
-            >
-              削除
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => duplicateRow(i)}
+                className="rounded-full border border-gold-300 bg-white px-3 py-0.5 text-[11px] text-gold-700 transition-colors hover:bg-gold-50"
+              >
+                複製
+              </button>
+              <button
+                type="button"
+                onClick={() => removeRow(i)}
+                className="rounded-full border border-rose-300 px-3 py-0.5 text-[11px] text-rose-500 transition-colors hover:bg-rose-50"
+              >
+                削除
+              </button>
+            </div>
           </div>
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
             {itemFields.map((f) => (

@@ -9,6 +9,7 @@ import {
   getLiveStatus,
   getTicketStatus,
   getYoutubeThumbnail,
+  parseAnyDate,
 } from "@/lib/utils"
 import type {
   Live,
@@ -76,11 +77,8 @@ function HeroBadges({ live, status }: { live: Live; status: ReturnType<typeof ge
 
 const DAY_LABELS = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"]
 function dayBadge(dateStr?: string): { label: string; cls: string } | null {
-  if (!dateStr) return null
-  const m = /^(\d{4})-(\d{1,2})-(\d{1,2})/.exec(dateStr)
-  if (!m) return null
-  const d = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]))
-  if (Number.isNaN(d.getTime())) return null
+  const d = parseAnyDate(dateStr)
+  if (!d) return null
   const day = d.getDay()
   const cls =
     day === 0
@@ -577,18 +575,23 @@ function LimitedBlock({ title, html }: { title: string; html: string }) {
   )
 }
 
-/** "2026-07-27" → "07.27"（年は省略）。 */
+/** 日付 → "07.27"（年は省略）。和暦/スラッシュ/ISO どれでも可。 */
 function mdDot(dateStr?: string): string {
-  const m = /^(\d{4})-(\d{1,2})-(\d{1,2})/.exec(dateStr ?? "")
-  if (!m) return ""
-  return `${m[2].padStart(2, "0")}.${m[3].padStart(2, "0")}`
+  const d = parseAnyDate(dateStr)
+  if (!d) return ""
+  return `${String(d.getMonth() + 1).padStart(2, "0")}.${String(d.getDate()).padStart(2, "0")}`
+}
+
+/** 並び替え用の日付キー（数値）。解釈不能は末尾。 */
+function dateSortKey(dateStr?: string): number {
+  return parseAnyDate(dateStr)?.getTime() ?? Number.MAX_SAFE_INTEGER
 }
 
 function venueDateLabel(v: Venue): string {
   const dates = (v.shows ?? [])
     .map((s) => s.date)
     .filter((d): d is string => !!d)
-    .sort()
+    .sort((a, b) => dateSortKey(a) - dateSortKey(b))
   if (dates.length === 0) return ""
   return dates[0] === dates[dates.length - 1]
     ? mdDot(dates[0])
@@ -607,7 +610,7 @@ function VenueBlock({
   baseSetlist?: SetlistItem[]
 }) {
   const color = VENUE_COLORS[index % VENUE_COLORS.length]
-  const shows = [...(venue.shows ?? [])].sort((a, b) => (a.date ?? "").localeCompare(b.date ?? ""))
+  const shows = [...(venue.shows ?? [])].sort((a, b) => dateSortKey(a.date) - dateSortKey(b.date))
   const goods = venue.venueGoods ?? []
   // この会場の公演ごとセトリ（showRef に会場名を含むもの）
   const showSetlists = (live?.showSetlists ?? []).filter(

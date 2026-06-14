@@ -158,16 +158,21 @@ function parseField(field: Field, formData: FormData): unknown {
   }
 }
 
-/** スキーマ全体を変換して 1 レコード分のオブジェクトを作る。 */
-function buildRecord(tableKey: string, formData: FormData): Record<string, unknown> {
+/** スキーマ全体を変換して 1 レコード分のオブジェクトを作る。
+ *  enforceRequired=false（下書き保存・プレビュー）のときは必須チェックを行わない。 */
+function buildRecord(
+  tableKey: string,
+  formData: FormData,
+  enforceRequired = true,
+): Record<string, unknown> {
   const cfg = getTableConfig(tableKey)
   if (!cfg) throw new Error("不明なテーブルです。")
 
   const record: Record<string, unknown> = {}
   for (const field of cfg.fields) {
     const value = parseField(field, formData)
-    if (field.required && (value === null || value === "")) {
-      throw new Error(`「${field.label}」は必須です。`)
+    if (enforceRequired && field.required && (value === null || value === "")) {
+      throw new Error(`「${field.label}」は必須です（公開する場合は入力してください）。`)
     }
     record[field.name] = value
   }
@@ -191,7 +196,7 @@ export async function buildLivePreview(
 ): Promise<LivePreviewState> {
   await assertAdmin()
   try {
-    const record = buildRecord("lives", formData)
+    const record = buildRecord("lives", formData, false)
     applyLiveStatus(record)
     // プレビューでは非公開（下書き）でも中身を確認したいので、そのまま描画する。
     return { live: toLive(record), record }
@@ -213,15 +218,15 @@ export async function createRecord(
     return { error: "認証が切れています。再度ログインしてください。" }
   }
 
+  // 公開状態は公開ボタン（hidden publish_status）で決定。下書きは必須未入力でも保存可。
+  const publishStatus = parsePublishStatus(formData)
   let record: Record<string, unknown>
   try {
-    record = buildRecord(tableKey, formData)
+    record = buildRecord(tableKey, formData, publishStatus === "published")
   } catch (e) {
     return { error: e instanceof Error ? e.message : "入力エラー" }
   }
-
-  // 公開状態は公開ボタン（hidden publish_status）で決定。
-  record.publish_status = parsePublishStatus(formData)
+  record.publish_status = publishStatus
 
   // lives は管理画面のスコープで is_10th を自動設定する
   // （/admin=非公式ファンサイト=false / /stpr-10th-anniversary/admin=10周年=true）。
@@ -269,14 +274,15 @@ export async function updateRecord(
     return { error: "認証が切れています。再度ログインしてください。" }
   }
 
+  // 下書きは必須未入力でも保存可。公開時のみ必須チェック。
+  const publishStatus = parsePublishStatus(formData)
   let record: Record<string, unknown>
   try {
-    record = buildRecord(tableKey, formData)
+    record = buildRecord(tableKey, formData, publishStatus === "published")
   } catch (e) {
     return { error: e instanceof Error ? e.message : "入力エラー" }
   }
-
-  record.publish_status = parsePublishStatus(formData)
+  record.publish_status = publishStatus
 
   if (tableKey === "lives") {
     record.is_10th = basePath.startsWith("/stpr-10th-anniversary")
