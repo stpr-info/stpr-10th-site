@@ -1,5 +1,6 @@
 import type { Metadata } from "next"
 import LiveHeader from "@/components/layout/LiveHeader"
+import LiveFooter from "@/components/layout/LiveFooter"
 
 export const metadata: Metadata = {
   title: "ライブ",
@@ -8,14 +9,14 @@ export const metadata: Metadata = {
 
 /**
  * 公開 /live セクション専用レイアウト。
- * 10周年テーマ（theme-10th）は使わず、STPR Blue のシンプルなヘッダーのみ。
- * サイドバーなし。
+ * ファンサイト共通のヘッダー（ロゴ＋2段ナビ）／フッター。サイドバーなし。
  */
 export default function LiveLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen overflow-x-hidden bg-gray-50 text-gray-900">
+    <div className="flex min-h-screen flex-col overflow-x-hidden bg-gray-50 text-gray-900">
       <LiveHeader />
-      <main className="mx-auto max-w-[1600px] px-4 py-8 lg:px-8">{children}</main>
+      <main className="mx-auto w-full max-w-[1600px] flex-1 px-4 py-8 lg:px-8">{children}</main>
+      <LiveFooter />
     </div>
   )
 }
